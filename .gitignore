@@ -1,0 +1,85 @@
+# Dependencies
+node_modules/
+.pnp/
+.pnp.js
+
+# Next.js
+.next/
+out/
+build/
+dist/
+
+# Production
+.vercel/
+.netlify/
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Testing / coverage
+coverage/
+.nyc_output/
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Local archives / uploads
+*.zip
+*.rar
+*.7z
+*.tar
+*.tar.gz
+
+# Screenshots / temporary images
+screenshots/
+*.screenshot.png
+*.debug.png
+
+# AI / context / scratch files
+*codex*
+*Codex*
+*handoff*
+*Handoff*
+*context*
+*Context*
+*scratch*
+*Scratch*
+*notes*
+*Notes*
+prompt*
+Prompt*
+
+# Local debug / temp
+tmp/
+temp/
+.cache/
+
+# Supabase local dev artifacts
+supabase/.branches/
+supabase/.temp/
+supabase/.env
+
+# Keep Supabase schema files tracked
+!supabase/schema.sql

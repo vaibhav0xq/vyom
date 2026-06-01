@@ -1,0 +1,113 @@
+import type { Capsule, CreateCapsuleInput } from "@/types/capsule";
+
+const SUPABASE_TABLE = "capsules";
+
+type SupabaseCapsuleRow = {
+  id: string;
+  title: string;
+  message: string;
+  recipient: string | null;
+  unlock_at: number;
+  visibility: Capsule["visibility"];
+  created_at: number;
+};
+
+export function hasSupabaseServerConfig() {
+  return Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY);
+}
+
+function supabaseEndpoint(path: string) {
+  const baseUrl = process.env.SUPABASE_URL?.replace(/\/$/, "");
+  return `${baseUrl}/rest/v1/${path}`;
+}
+
+function supabaseHeaders(extra?: HeadersInit) {
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
+
+  return {
+    apikey: serviceRoleKey,
+    Authorization: `Bearer ${serviceRoleKey}`,
+    "Content-Type": "application/json",
+    ...extra,
+  };
+}
+
+async function requestSupabase<T>(path: string, init?: RequestInit): Promise<T> {
+  const response = await fetch(supabaseEndpoint(path), {
+    ...init,
+    headers: supabaseHeaders(init?.headers),
+  });
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || "Supabase request failed.");
+  }
+
+  if (response.status === 204) {
+    return undefined as T;
+  }
+
+  return response.json() as Promise<T>;
+}
+
+function createId() {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
+  }
+
+  return `capsule_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function toRow(capsule: Capsule): SupabaseCapsuleRow {
+  return {
+    id: capsule.id,
+    title: capsule.title,
+    message: capsule.message,
+    recipient: capsule.recipient ?? null,
+    unlock_at: capsule.unlockAt,
+    visibility: capsule.visibility,
+    created_at: capsule.createdAt,
+  };
+}
+
+function fromRow(row: SupabaseCapsuleRow): Capsule {
+  return {
+    id: row.id,
+    title: row.title,
+    message: row.message,
+    recipient: row.recipient ?? undefined,
+    unlockAt: row.unlock_at,
+    visibility: row.visibility,
+    createdAt: row.created_at,
+  };
+}
+
+export async function createRemoteCapsule(data: CreateCapsuleInput) {
+  const capsule: Capsule = {
+    id: createId(),
+    title: data.title.trim(),
+    message: data.message.trim(),
+    recipient: data.recipient?.trim() || undefined,
+    unlockAt: data.unlockAt,
+    visibility: data.visibility,
+    createdAt: Date.now(),
+  };
+
+  const rows = await requestSupabase<SupabaseCapsuleRow[]>(SUPABASE_TABLE, {
+    method: "POST",
+    headers: {
+      Prefer: "return=representation",
+    },
+    body: JSON.stringify(toRow(capsule)),
+  });
+
+  return rows[0] ? fromRow(rows[0]) : capsule;
+}
+
+export async function getRemoteCapsuleById(id: string) {
+  const rows = await requestSupabase<SupabaseCapsuleRow[]>(
+    `${SUPABASE_TABLE}?id=eq.${encodeURIComponent(id)}&select=*&limit=1`,
+  );
+
+  return rows[0] ? fromRow(rows[0]) : undefined;
+}

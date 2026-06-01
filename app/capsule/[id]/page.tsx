@@ -1,0 +1,149 @@
+"use client";
+
+import { ArrowLeft, LockKeyhole, Share2 } from "lucide-react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import { CapsuleHero } from "@/components/vyom/CapsuleHero";
+import { EncryptedPreview, LockedCapsulePanel, UnlockedCapsulePanel } from "@/components/vyom/ProductSurfaces";
+import { VyomButton } from "@/components/vyom/VyomButton";
+import { VyomShell } from "@/components/vyom/VyomShell";
+import { formatDateTime, getCountdown, isCapsuleUnlocked } from "@/lib/capsule-utils";
+import { getCapsuleById } from "@/lib/capsules";
+import type { Capsule } from "@/types/capsule";
+
+export default function CapsulePage() {
+  const params = useParams<{ id: string }>();
+  const [capsule, setCapsule] = useState<Capsule | undefined>();
+  const [isLoading, setIsLoading] = useState(true);
+  const [now, setNow] = useState(0);
+  const [copyLabel, setCopyLabel] = useState("Copy link");
+
+  useEffect(() => {
+    const handle = window.setTimeout(() => {
+      async function loadCapsule() {
+        try {
+          setCapsule(await getCapsuleById(params.id));
+        } catch {
+          setCapsule(undefined);
+        }
+        setIsLoading(false);
+      }
+
+      void loadCapsule();
+    }, 0);
+
+    return () => window.clearTimeout(handle);
+  }, [params.id]);
+
+  useEffect(() => {
+    const initialTick = window.setTimeout(() => setNow(Date.now()), 0);
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+
+    return () => {
+      window.clearTimeout(initialTick);
+      window.clearInterval(timer);
+    };
+  }, []);
+
+  const unlocked = capsule ? isCapsuleUnlocked(capsule, now) : false;
+  const countdown = useMemo(
+    () => getCountdown(capsule?.unlockAt ?? now, now),
+    [capsule?.unlockAt, now],
+  );
+
+  async function copyLink() {
+    const url = window.location.href;
+    try {
+      await window.navigator.clipboard.writeText(url);
+      setCopyLabel("Copied");
+      window.setTimeout(() => setCopyLabel("Copy link"), 1600);
+    } catch {
+      setCopyLabel("Copy failed");
+      window.setTimeout(() => setCopyLabel("Copy link"), 1600);
+    }
+  }
+
+  return (
+    <VyomShell>
+      <section className="cinematic-section relative mx-auto grid min-h-[50vh] w-full max-w-7xl items-center gap-8 px-5 pb-8 pt-28 sm:min-h-[54vh] sm:px-8 lg:min-h-[56vh] lg:grid-cols-[0.88fr_1.12fr]">
+        <div className="reveal-stack max-w-2xl">
+          <Link href="/vault" className="mb-7 inline-flex items-center gap-3 text-xs font-medium uppercase tracking-[0.14em] text-white/44 transition duration-280 hover:text-cyan-100">
+            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+            Back to vault
+          </Link>
+          <div className="liquid-glass mb-5 inline-flex max-w-full items-center gap-3 px-5 py-3.5 text-xs font-medium uppercase tracking-[0.14em] text-cyan-50/80">
+            <LockKeyhole className="h-4 w-4 text-cyan-100/80" aria-hidden="true" />
+            <span className="min-w-0 truncate">{unlocked ? "Private capsule" : "Sealed capsule"}</span>
+          </div>
+          <h1 className="max-w-3xl text-4xl font-medium leading-[1.02] tracking-[-0.018em] text-white sm:text-5xl lg:text-6xl">
+            {isLoading ? "Loading capsule..." : capsule ? unlocked ? "This capsule is ready." : "This capsule is sealed." : "Capsule not found."}
+          </h1>
+          <p className="mt-5 max-w-xl text-base leading-8 tracking-[0.003em] text-white/58 sm:text-lg">
+            {capsule
+              ? unlocked
+                ? "The message can now be opened."
+                : `It will stay hidden until ${formatDateTime(capsule.unlockAt)}.`
+              : "This link does not match a capsule stored in this browser."}
+          </p>
+          <div className="mt-8 flex flex-col gap-4 sm:flex-row">
+            <VyomButton href="/vault">Back to vault</VyomButton>
+            {capsule ? (
+              <VyomButton variant="secondary" onClick={copyLink}>
+                {copyLabel}
+                <Share2 className="h-4 w-4" aria-hidden="true" />
+              </VyomButton>
+            ) : null}
+          </div>
+        </div>
+        <CapsuleHero compact />
+      </section>
+
+      <section className="relative border-y border-white/[0.06]">
+        <div className="mx-auto grid w-full max-w-7xl gap-6 px-5 py-12 sm:px-8 sm:py-14 lg:grid-cols-[1fr_0.8fr]">
+          {isLoading ? (
+            <div className="product-surface border border-white/[0.08] bg-white/[0.025] p-8 text-white/50 backdrop-blur-none">
+              Loading capsule...
+            </div>
+          ) : capsule ? (
+            unlocked ? (
+              <>
+                <UnlockedCapsulePanel capsule={capsule} copyLabel={copyLabel} onCopyLink={copyLink} />
+                <div className="product-surface border border-white/[0.08] bg-white/[0.025] p-6 backdrop-blur-none">
+                  <h2 className="text-3xl font-medium tracking-[-0.014em] text-white">Sealed preview</h2>
+                  <p className="mt-4 text-white/52">The sealed texture remains as a quiet record of what was protected.</p>
+                  <EncryptedPreview message={capsule.message} />
+                </div>
+              </>
+            ) : (
+              <>
+                <LockedCapsulePanel capsule={capsule} countdown={countdown} />
+                <div className="product-surface border border-white/[0.08] bg-white/[0.025] p-6 backdrop-blur-none">
+                  <h2 className="text-3xl font-medium tracking-[-0.014em] text-white">Share sealed capsule</h2>
+                  <p className="mt-4 text-white/52">
+                    Anyone with this link can see the capsule. The message stays hidden until the unlock time.
+                  </p>
+                  <div className="mt-6">
+                    <VyomButton onClick={copyLink}>
+                      {copyLabel}
+                    </VyomButton>
+                  </div>
+                </div>
+              </>
+            )
+          ) : (
+            <div className="product-surface border border-white/[0.08] bg-white/[0.025] p-8 backdrop-blur-none lg:col-span-2">
+              <h2 className="text-3xl font-medium tracking-[-0.014em] text-white">Capsule not found</h2>
+              <p className="mt-4 max-w-xl text-white/52">
+                Capsules are stored locally in this browser. Create a capsule or open a link from this device.
+              </p>
+              <div className="mt-6">
+                <VyomButton href="/create">Create capsule</VyomButton>
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
+    </VyomShell>
+  );
+}
