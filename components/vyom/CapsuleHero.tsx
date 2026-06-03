@@ -91,7 +91,7 @@ export function CapsuleHero({ compact = false }: { compact?: boolean }) {
         <div className="absolute inset-x-0 top-0 h-[1px] rounded-t-[inherit] bg-gradient-to-r from-transparent via-cyan-100/[0.18] to-transparent" />
         <div className="mb-8 flex items-center gap-3 text-violet-100/68">
           <Sparkles className="h-4 w-4" aria-hidden="true" />
-          <span className="text-xs font-medium uppercase tracking-[0.14em]">private link</span>
+          <span className="text-xs font-medium uppercase tracking-[0.14em]">link access</span>
         </div>
         <p className="text-sm text-white/58">Ready to share</p>
         <div className="mt-4 grid grid-cols-5 gap-1">

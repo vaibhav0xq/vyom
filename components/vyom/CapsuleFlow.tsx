@@ -4,18 +4,18 @@ import type { CSSProperties } from "react";
 const steps = [
   {
     icon: MessageSquareText,
-    title: "Create",
-    detail: "Write a private message and name the capsule.",
+    title: "Create a capsule",
+    detail: "Write a message and choose when it should unlock.",
   },
   {
     icon: LockKeyhole,
-    title: "Lock",
-    detail: "Set an unlock date or keep access limited to the intended recipient.",
+    title: "Choose access",
+    detail: "Share by link or restrict reveal to a Sui wallet.",
   },
   {
     icon: Link2,
-    title: "Share",
-    detail: "Send a private link. The content stays hidden until unlock.",
+    title: "Reveal later",
+    detail: "The capsule stays sealed until time and access conditions are met.",
   },
 ];
 

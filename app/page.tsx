@@ -18,16 +18,16 @@ export default function Home() {
         <div className="reveal-stack relative z-10 min-w-0">
           <div className="liquid-glass mb-7 inline-flex w-full max-w-full items-center gap-3 px-5 py-3.5 text-[0.68rem] font-medium uppercase tracking-[0.12em] text-cyan-50/80 sm:w-auto sm:text-xs sm:tracking-[0.16em]">
             <LockKeyhole className="h-4 w-4 shrink-0 text-cyan-100/80" aria-hidden="true" />
-            <span className="min-w-0 whitespace-normal leading-5">Sealed capsules for private messages</span>
+            <span className="min-w-0 whitespace-normal leading-5">Sealed capsules for Sui</span>
           </div>
 
-          <h1 className="max-w-[13ch] text-[2.75rem] font-medium leading-[0.98] tracking-[-0.018em] text-white min-[430px]:text-[3.25rem] sm:max-w-4xl sm:text-6xl lg:text-[4.7rem] xl:text-[5.7rem]">
-            Seal a message for the future.
+          <h1 className="max-w-[15ch] text-[2.75rem] font-medium leading-[0.98] tracking-[-0.018em] text-white min-[430px]:text-[3.25rem] sm:max-w-4xl sm:text-6xl lg:text-[4.7rem] xl:text-[5.55rem]">
+            Seal a message until the moment arrives.
           </h1>
 
           <p className="mt-7 max-w-[25rem] text-base leading-8 tracking-[0.003em] text-white/62 sm:max-w-2xl sm:text-lg sm:leading-8">
-            Write something private, choose when it can be opened, and let it
-            wait safely until the right moment arrives.
+            Create a private capsule, set when it unlocks, and share it by link.
+            For sensitive reveals, gate access to a specific Sui wallet.
           </p>
 
           <div className="mt-11 flex flex-col gap-4 sm:flex-row">
@@ -35,9 +35,21 @@ export default function Home() {
               Create capsule
               <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
             </VyomButton>
-            <VyomButton href="/vault" variant="secondary">
-              View my vault
+            <VyomButton href="/capsule/demo" variant="secondary">
+              View demo
             </VyomButton>
+          </div>
+
+          <div className="mt-7 grid max-w-xl grid-cols-1 gap-2 text-xs font-medium uppercase tracking-[0.12em] text-white/42 min-[430px]:grid-cols-3">
+            <span className="border border-white/[0.06] bg-white/[0.025] px-3 py-2 text-center backdrop-blur-sm">
+              Time-based unlock
+            </span>
+            <span className="border border-white/[0.06] bg-white/[0.025] px-3 py-2 text-center backdrop-blur-sm">
+              Sui wallet gate
+            </span>
+            <span className="border border-white/[0.06] bg-white/[0.025] px-3 py-2 text-center backdrop-blur-sm">
+              Shareable link
+            </span>
           </div>
         </div>
 
@@ -55,7 +67,7 @@ export default function Home() {
               Three simple steps.
             </h2>
             <p className="mt-5 max-w-md text-base leading-8 text-white/52">
-              Write the message, choose the unlock rule, then share the capsule.
+              Create the message, choose access, then reveal it when the conditions are met.
             </p>
           </div>
 
