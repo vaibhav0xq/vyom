@@ -1,6 +1,6 @@
 "use client";
 
-import { ConnectButton, useCurrentAccount, useCurrentWallet } from "@mysten/dapp-kit";
+import { ConnectButton, useCurrentAccount, useCurrentWallet, useWallets } from "@mysten/dapp-kit";
 import { Plus, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { CapsuleCard } from "@/components/vyom/ProductSurfaces";
@@ -12,9 +12,12 @@ import { useCapsules } from "@/hooks/useCapsules";
 export default function VaultPage() {
   const currentAccount = useCurrentAccount();
   const { isConnecting } = useCurrentWallet();
+  const suiWallets = useWallets();
   const { capsules, isLoading } = useCapsules(currentAccount?.address);
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<"all" | "locked" | "unlocked">("all");
+  const hasVisibleCapsules = capsules.length > 0;
+  const hasSuiWallet = suiWallets.length > 0;
 
   const filteredCapsules = useMemo(() => {
     return capsules.filter((capsule) => {
@@ -48,22 +51,47 @@ export default function VaultPage() {
           </VyomButton>
         </div>
 
-        {!currentAccount ? (
+        {!currentAccount && !isLoading && !hasVisibleCapsules ? (
           <div className="product-surface mb-6 border border-cyan-100/12 bg-cyan-100/[0.025] p-6 backdrop-blur-2xl">
             <h2 className="text-3xl font-medium tracking-[-0.014em] text-white">Connect Sui wallet to view your vault.</h2>
             <p className="mt-4 max-w-xl text-white/54">
-              Capsules created with this wallet will appear here. Direct shared links still work even when your Vault is empty.
+              Capsules created with this wallet will appear here.
             </p>
             <div className="mt-6">
               <ConnectButton
                 connectText={isConnecting ? "Connecting..." : "Connect Sui wallet"}
-                className="glass-btn glass-btn-primary min-h-12 px-5 py-3 text-sm"
+                className="vyom-connect-button glass-btn glass-btn-primary min-h-12 px-5 py-3 text-sm"
               />
             </div>
+            {!hasSuiWallet ? (
+              <p className="mt-4 text-sm leading-6 text-white/46">
+                Sui wallet not found. Install a Sui-compatible wallet to continue.
+              </p>
+            ) : null}
           </div>
         ) : null}
 
-        {capsules.length > 0 ? (
+        {!currentAccount && hasVisibleCapsules ? (
+          <div className="mb-6 flex flex-col gap-4 border border-cyan-100/10 bg-cyan-100/[0.025] p-4 backdrop-blur-2xl sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-base font-medium text-white">Connect Sui wallet to sync your vault across browsers.</h2>
+              <p className="mt-2 text-sm leading-6 text-white/50">
+                Capsules created from this browser remain visible here.
+              </p>
+            </div>
+            <ConnectButton
+              connectText={isConnecting ? "Connecting..." : "Connect Sui wallet"}
+              className="vyom-connect-button glass-btn glass-btn-secondary min-h-11 px-4 py-2.5 text-sm"
+            />
+            {!hasSuiWallet ? (
+              <p className="text-sm leading-6 text-white/46 sm:max-w-56">
+                Sui wallet not found. Install a Sui-compatible wallet to continue.
+              </p>
+            ) : null}
+          </div>
+        ) : null}
+
+        {hasVisibleCapsules ? (
         <div className="mb-6 grid gap-4 border border-white/[0.08] bg-white/[0.025] p-4 backdrop-blur-2xl md:grid-cols-[1fr_auto_auto]">
           <label className="flex min-h-12 items-center gap-3 border border-white/[0.07] bg-black/25 px-4 text-white/70">
             <Search className="h-4 w-4 text-cyan-100/60" aria-hidden="true" />
@@ -93,7 +121,7 @@ export default function VaultPage() {
           <div className="product-surface border border-white/[0.08] bg-white/[0.025] p-8 text-white/52 backdrop-blur-2xl">
             Loading capsules...
           </div>
-        ) : filteredCapsules.length > 0 ? (
+        ) : !currentAccount && !hasVisibleCapsules ? null : filteredCapsules.length > 0 ? (
           <div className="grid gap-5 lg:grid-cols-3">
             {filteredCapsules.map((capsule) => (
               <CapsuleCard key={capsule.id} capsule={capsule} />
@@ -102,13 +130,13 @@ export default function VaultPage() {
         ) : (
           <div className="product-surface border border-white/[0.08] bg-white/[0.025] p-8 backdrop-blur-2xl">
             <h2 className="text-3xl font-medium tracking-[-0.014em] text-white">
-              {currentAccount ? "No capsules found for this wallet." : "No capsules saved on this device yet."}
+              {currentAccount ? "No capsules found for this wallet." : "Connect Sui wallet to view your vault."}
             </h2>
             <p className="mt-4 max-w-[18rem] text-white/54 sm:max-w-xl">
               {capsules.length === 0
                 ? currentAccount
-                  ? "Create a capsule while this wallet is connected, or open a shared capsule link directly."
-                  : "Seal your first message on this browser and it will wait here until its unlock time."
+                  ? "Create a capsule while this wallet is connected and it will appear here."
+                  : "Capsules created with this wallet will appear here."
                 : "Try changing the search or status filter."}
             </p>
             <div className="mt-6">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCurrentAccount } from "@mysten/dapp-kit";
+import { ConnectButton, useCurrentAccount, useCurrentWallet, useWallets } from "@mysten/dapp-kit";
 import { ArrowUpRight, CalendarClock, Clock3, Link2, LockKeyhole, MessageSquareText, UserRound } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { type FormEvent, useMemo, useState } from "react";
@@ -29,6 +29,8 @@ function splitUnlockValue(value: string) {
 export default function CreatePage() {
   const router = useRouter();
   const currentAccount = useCurrentAccount();
+  const { isConnecting } = useCurrentWallet();
+  const suiWallets = useWallets();
   const { createCapsule } = useCapsules();
   const defaultUnlock = splitUnlockValue(getDefaultUnlockValue());
   const [title, setTitle] = useState("");
@@ -40,6 +42,7 @@ export default function CreatePage() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedback, setFeedback] = useState("");
+  const hasSuiWallet = suiWallets.length > 0;
 
   const unlockTimestamp = useMemo(() => {
     if (!unlockDate || !unlockTime) {
@@ -241,7 +244,22 @@ export default function CreatePage() {
               <p className="mt-5 rounded-[var(--glass-radius)] border border-cyan-100/10 bg-cyan-100/[0.025] px-4 py-3 text-sm leading-6 text-cyan-50/64">
                 Connected wallet will own this capsule in your Vault.
               </p>
-            ) : null}
+            ) : (
+              <div className="mt-5 flex flex-col gap-3 rounded-[var(--glass-radius)] border border-white/[0.07] bg-black/18 px-4 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+                <p className="text-sm leading-6 text-white/48">
+                  Optional: connect Sui wallet to save this capsule to your Vault.
+                </p>
+                <ConnectButton
+                  connectText={isConnecting ? "Connecting..." : "Connect Sui wallet"}
+                  className="vyom-connect-button glass-btn glass-btn-secondary min-h-10 px-4 py-2 text-sm"
+                />
+                {!hasSuiWallet ? (
+                  <p className="text-sm leading-6 text-white/42 sm:basis-full">
+                    Sui wallet not found. Install a Sui-compatible wallet to continue.
+                  </p>
+                ) : null}
+              </div>
+            )}
 
             {feedback ? <p className="mt-5 text-sm font-medium text-cyan-100/72">{feedback}</p> : null}
 

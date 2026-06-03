@@ -16,11 +16,7 @@ export function SuiWalletProvider({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <SuiClientProvider networks={networkConfig} defaultNetwork="mainnet">
-        <WalletProvider
-          autoConnect
-          preferredWallets={["Slush"]}
-          slushWallet={{ name: "Vyom" }}
-        >
+        <WalletProvider autoConnect>
           {children}
         </WalletProvider>
       </SuiClientProvider>

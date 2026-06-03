@@ -137,7 +137,7 @@ export default function CapsulePage() {
                   walletControl={
                     <ConnectButton
                       connectText={isConnecting ? "Connecting..." : "Connect Sui wallet to unlock"}
-                      className="glass-btn glass-btn-primary min-h-12 w-full px-5 py-3 text-sm"
+                      className="vyom-connect-button glass-btn glass-btn-primary min-h-12 w-full px-5 py-3 text-sm"
                     />
                   }
                 />
@@ -148,7 +148,7 @@ export default function CapsulePage() {
                   </p>
                   {!hasSuiWallet && !currentAccount ? (
                     <p className="mt-5 rounded-[var(--glass-radius)] border border-white/[0.08] bg-black/22 p-4 text-sm leading-7 text-white/66">
-                      Sui wallet not found. Open this link in a Sui wallet-enabled browser.
+                      Sui wallet not found. Install a Sui-compatible wallet to continue.
                     </p>
                   ) : null}
                   <div className="mt-6">
