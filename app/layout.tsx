@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
+import "@mysten/dapp-kit/dist/index.css";
 import "./globals.css";
+import { SuiWalletProvider } from "@/components/vyom/SuiWalletProvider";
 
 export const metadata: Metadata = {
   title: "Vyom | Sealed Programmable Capsules on Sui",
@@ -34,7 +36,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full antialiased">
       <body className="min-h-full flex flex-col overflow-x-hidden bg-vyom-black text-vyom-white">
-        {children}
+        <SuiWalletProvider>{children}</SuiWalletProvider>
       </body>
     </html>
   );

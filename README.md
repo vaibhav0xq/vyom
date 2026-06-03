@@ -136,7 +136,7 @@ Create capsule → Copy link → Open link in another browser/device → Wait fo
 - Without Supabase, shareable links only work in the same browser because data is stored in `localStorage`.
 - With Supabase configured, `/capsule/[id]` links can be opened across browsers and devices.
 - Vault is local-device scoped until authentication is added.
-- Sui wallet gating is app-level access control using an injected wallet provider. Real cryptographic encryption is not implemented yet.
+- Sui wallet gating is app-level access control using Sui Wallet Standard connection. Real cryptographic encryption is not implemented yet.
 - NFT gating, payments, file capsules, and advanced unlock logic are future features.
 
 ## Product Direction

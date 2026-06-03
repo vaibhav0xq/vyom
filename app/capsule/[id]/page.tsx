@@ -1,5 +1,6 @@
 "use client";
 
+import { ConnectButton, useCurrentAccount, useCurrentWallet, useWallets } from "@mysten/dapp-kit";
 import { ArrowLeft, LockKeyhole, Share2 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -13,26 +14,15 @@ import { formatAccessMode, formatDateTime, getCountdown } from "@/lib/capsule-ut
 import { getCapsuleById } from "@/lib/capsules";
 import type { Capsule } from "@/types/capsule";
 
-type EthereumProvider = {
-  request: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
-};
-
-declare global {
-  interface Window {
-    ethereum?: EthereumProvider;
-  }
-}
-
 export default function CapsulePage() {
   const params = useParams<{ id: string }>();
+  const currentAccount = useCurrentAccount();
+  const { isConnecting } = useCurrentWallet();
+  const suiWallets = useWallets();
   const [capsule, setCapsule] = useState<Capsule | undefined>();
   const [isLoading, setIsLoading] = useState(true);
   const [now, setNow] = useState(0);
   const [copyLabel, setCopyLabel] = useState("Copy link");
-  const [walletAddress, setWalletAddress] = useState<string | null>(null);
-  const [walletMessage, setWalletMessage] = useState("");
-  const [isConnectingWallet, setIsConnectingWallet] = useState(false);
-  const [hasWalletProvider, setHasWalletProvider] = useState(true);
 
   useEffect(() => {
     const handle = window.setTimeout(() => {
@@ -61,65 +51,15 @@ export default function CapsulePage() {
     };
   }, []);
 
-  useEffect(() => {
-    const handle = window.setTimeout(() => {
-      if (!window.ethereum) {
-        setHasWalletProvider(false);
-        return;
-      }
-
-      setHasWalletProvider(true);
-
-      async function loadConnectedWallet() {
-        try {
-          const accounts = await window.ethereum?.request({ method: "eth_accounts" });
-          const [address] = Array.isArray(accounts) ? accounts : [];
-          if (typeof address === "string") {
-            setWalletAddress(address);
-          }
-        } catch {
-          // Silent by design: connecting remains an explicit user action.
-        }
-      }
-
-      void loadConnectedWallet();
-    }, 0);
-
-    return () => window.clearTimeout(handle);
-  }, []);
-
   const revealState = capsule
-    ? getCapsuleRevealState(capsule, { now, walletAddress })
+    ? getCapsuleRevealState(capsule, { now, walletAddress: currentAccount?.address })
     : "time_locked";
   const unlocked = revealState === "unlocked";
+  const hasSuiWallet = suiWallets.length > 0;
   const countdown = useMemo(
     () => getCountdown(capsule?.unlockAt ?? now, now),
     [capsule?.unlockAt, now],
   );
-
-  async function connectWallet() {
-    if (!window.ethereum) {
-      setWalletMessage("Wallet not found. Open this link in a wallet-enabled browser.");
-      return;
-    }
-
-    setIsConnectingWallet(true);
-    setWalletMessage("");
-
-    try {
-      const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
-      const [address] = Array.isArray(accounts) ? accounts : [];
-      if (typeof address === "string") {
-        setWalletAddress(address);
-      } else {
-        setWalletMessage("Wallet connection did not return an address.");
-      }
-    } catch {
-      setWalletMessage("Wallet connection was not completed.");
-    } finally {
-      setIsConnectingWallet(false);
-    }
-  }
 
   async function copyLink() {
     const url = window.location.href;
@@ -193,18 +133,22 @@ export default function CapsulePage() {
                 <WalletAccessPanel
                   capsule={capsule}
                   state={revealState}
-                  walletAddress={walletAddress}
-                  onConnect={connectWallet}
-                  isConnecting={isConnectingWallet}
+                  walletAddress={currentAccount?.address}
+                  walletControl={
+                    <ConnectButton
+                      connectText={isConnecting ? "Connecting..." : "Connect Sui wallet to unlock"}
+                      className="glass-btn glass-btn-primary min-h-12 w-full px-5 py-3 text-sm"
+                    />
+                  }
                 />
                 <div className="product-surface border border-white/[0.08] bg-white/[0.025] p-6 backdrop-blur-none">
                   <h2 className="text-3xl font-medium tracking-[-0.014em] text-white">Wallet gated capsule</h2>
                   <p className="mt-4 text-white/52">
                     Time unlock is complete. The message remains hidden until the recipient wallet is connected.
                   </p>
-                  {walletMessage || !hasWalletProvider ? (
+                  {!hasSuiWallet && !currentAccount ? (
                     <p className="mt-5 rounded-[var(--glass-radius)] border border-white/[0.08] bg-black/22 p-4 text-sm leading-7 text-white/66">
-                      {walletMessage || "Wallet not found. Open this link in a wallet-enabled browser."}
+                      Sui wallet not found. Open this link in a Sui wallet-enabled browser.
                     </p>
                   ) : null}
                   <div className="mt-6">

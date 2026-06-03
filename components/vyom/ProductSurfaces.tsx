@@ -1,4 +1,5 @@
 import { CalendarClock, EyeOff, KeyRound, Link2, LockKeyhole, MessageSquareText, UserRound, Wallet } from "lucide-react";
+import type { ReactNode } from "react";
 import {
   createEncryptedPreview,
   formatDateTime,
@@ -181,23 +182,21 @@ export function WalletAccessPanel({
   capsule,
   state,
   walletAddress,
-  onConnect,
-  isConnecting,
+  walletControl,
 }: {
   capsule: Capsule;
   state: "wallet_required" | "wallet_mismatch";
   walletAddress?: string | null;
-  onConnect: () => void;
-  isConnecting: boolean;
+  walletControl: ReactNode;
 }) {
   const title =
     state === "wallet_mismatch"
       ? "This wallet cannot open this capsule."
-      : "Connect wallet to unlock";
+      : "Connect Sui wallet to unlock";
   const body =
     state === "wallet_mismatch"
       ? "The connected wallet does not match the recipient wallet for this capsule."
-      : "This capsule is wallet gated. Connect the recipient wallet after the unlock time to reveal the message.";
+      : "This capsule is wallet gated. Connect the recipient Sui wallet after the unlock time to reveal the message.";
 
   return (
     <div className="product-surface locked-emphasis relative overflow-hidden border border-white/[0.08] bg-white/[0.025] p-6 backdrop-blur-none">
@@ -219,9 +218,7 @@ export function WalletAccessPanel({
         </p>
       ) : null}
 
-      <VyomButton className="mt-6 w-full" onClick={onConnect} disabled={isConnecting}>
-        {isConnecting ? "Connecting..." : "Connect wallet"}
-      </VyomButton>
+      <div className="mt-6">{walletControl}</div>
     </div>
   );
 }
