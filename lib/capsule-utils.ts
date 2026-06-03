@@ -38,9 +38,22 @@ export function formatAccessMode(capsule: Pick<Capsule, "accessType">) {
   return capsule.accessType === "wallet" ? "Wallet gated" : "Link access";
 }
 
+export function formatWalletAddress(address?: string | null) {
+  const value = address?.trim();
+  if (!value) {
+    return "";
+  }
+
+  if (value.length <= 14) {
+    return value;
+  }
+
+  return `${value.slice(0, 6)}...${value.slice(-4)}`;
+}
+
 export function formatRecipient(capsule: Capsule) {
   if (capsule.accessType === "wallet") {
-    return capsule.recipient?.trim() || "Wallet required";
+    return formatWalletAddress(capsule.recipient) || "Wallet required";
   }
 
   return capsule.recipient?.trim() || "Only you";

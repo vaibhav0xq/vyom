@@ -5,6 +5,7 @@ import {
   formatDateTime,
   formatRecipient,
   formatAccessMode,
+  formatWalletAddress,
   getCapsuleStatus,
   type Countdown,
 } from "@/lib/capsule-utils";
@@ -22,6 +23,11 @@ type PreviewData = {
 export function CreatePreview({ data }: { data: PreviewData }) {
   const title = data.title.trim() || "Untitled capsule";
   const hasMessage = data.message.trim().length > 0;
+  const recipient = data.recipient?.trim();
+  const recipientDisplay =
+    data.accessType === "wallet"
+      ? formatWalletAddress(recipient) || "Wallet required"
+      : recipient || "Optional";
 
   return (
     <div className="product-surface relative overflow-hidden border border-white/[0.08] bg-white/[0.025] p-6 backdrop-blur-none">
@@ -39,7 +45,8 @@ export function CreatePreview({ data }: { data: PreviewData }) {
         <PreviewRow
           icon={data.accessType === "wallet" ? Wallet : UserRound}
           label={data.accessType === "wallet" ? "Recipient wallet" : "Recipient optional"}
-          value={data.recipient?.trim() || (data.accessType === "wallet" ? "Wallet required" : "Optional")}
+          value={recipientDisplay}
+          title={data.accessType === "wallet" ? recipient : undefined}
         />
         <PreviewRow icon={Link2} label="Access" value={formatAccessMode(data)} />
       </div>
@@ -57,10 +64,12 @@ function PreviewRow({
   icon: Icon,
   label,
   value,
+  title,
 }: {
   icon: typeof MessageSquareText;
   label: string;
   value: string;
+  title?: string;
 }) {
   return (
     <div className="border border-white/[0.06] bg-black/22 p-4 rounded-[var(--glass-radius)]">
@@ -68,7 +77,9 @@ function PreviewRow({
         <Icon className="h-4 w-4 text-cyan-100/60" aria-hidden="true" />
         <span className="text-xs font-medium uppercase tracking-[0.14em] text-white/38">{label}</span>
       </div>
-      <p className="mt-4 text-base leading-7 text-white/85">{value}</p>
+      <p className="mt-4 text-base leading-7 text-white/85" title={title} aria-label={title}>
+        {value}
+      </p>
     </div>
   );
 }
@@ -93,7 +104,11 @@ export function CapsuleCard({ capsule }: { capsule: Capsule }) {
             <CalendarClock className="h-4 w-4 text-cyan-100/50" aria-hidden="true" />
             {ready ? `Ready since ${formatDateTime(capsule.unlockAt)}` : `Sealed until ${formatDateTime(capsule.unlockAt)}`}
           </p>
-          <p className="flex items-center gap-3">
+          <p
+            className="flex items-center gap-3"
+            title={capsule.accessType === "wallet" ? capsule.recipient : undefined}
+            aria-label={capsule.accessType === "wallet" ? `Recipient ${capsule.recipient}` : undefined}
+          >
             <UserRound className="h-4 w-4 text-cyan-100/50" aria-hidden="true" />
             {formatRecipient(capsule)}
           </p>
@@ -213,8 +228,12 @@ export function WalletAccessPanel({
       <EncryptedPreview message={capsule.message} />
 
       {walletAddress ? (
-        <p className="mt-5 break-words rounded-[var(--glass-radius)] border border-white/[0.06] bg-black/22 p-4 text-sm leading-7 text-white/58">
-          Connected wallet: {walletAddress}
+        <p
+          className="mt-5 break-words rounded-[var(--glass-radius)] border border-white/[0.06] bg-black/22 p-4 text-sm leading-7 text-white/58"
+          title={walletAddress}
+          aria-label={`Connected wallet ${walletAddress}`}
+        >
+          Connected wallet: {formatWalletAddress(walletAddress)}
         </p>
       ) : null}
 
@@ -272,10 +291,12 @@ function CountdownGrid({ countdown }: { countdown: Countdown }) {
 }
 
 function CapsuleMeta({ capsule }: { capsule: Capsule }) {
+  const recipientTitle = capsule.accessType === "wallet" ? capsule.recipient : undefined;
+
   return (
     <div className="mt-5 grid gap-4 sm:grid-cols-3">
       <MetaBlock icon={CalendarClock} label="Unlock date" value={formatDateTime(capsule.unlockAt)} />
-      <MetaBlock icon={UserRound} label="Recipient" value={formatRecipient(capsule)} />
+      <MetaBlock icon={UserRound} label="Recipient" value={formatRecipient(capsule)} title={recipientTitle} />
       <MetaBlock icon={Link2} label="Access" value={formatAccessMode(capsule)} />
     </div>
   );
@@ -285,16 +306,20 @@ function MetaBlock({
   icon: Icon,
   label,
   value,
+  title,
 }: {
   icon: typeof CalendarClock;
   label: string;
   value: string;
+  title?: string;
 }) {
   return (
     <div className="rounded-[var(--glass-radius)] border border-white/[0.06] bg-black/22 p-5">
       <Icon className="h-5 w-5 text-cyan-100/60" aria-hidden="true" />
       <p className="mt-6 text-xs font-medium uppercase tracking-[0.14em] text-white/32">{label}</p>
-      <p className="mt-2 break-words text-base leading-7 text-white/90">{value}</p>
+      <p className="mt-2 break-words text-base leading-7 text-white/90" title={title} aria-label={title}>
+        {value}
+      </p>
     </div>
   );
 }
