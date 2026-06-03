@@ -1,6 +1,6 @@
 "use client";
 
-import { ConnectButton, useCurrentAccount, useCurrentWallet, useWallets } from "@mysten/dapp-kit";
+import { ConnectButton, useCurrentAccount, useCurrentWallet, useDisconnectWallet, useWallets } from "@mysten/dapp-kit";
 import { ArrowUpRight, CalendarClock, Clock3, Link2, LockKeyhole, MessageSquareText, UserRound } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { type FormEvent, useMemo, useState } from "react";
@@ -10,6 +10,7 @@ import { VyomButton } from "@/components/vyom/VyomButton";
 import { VyomInput } from "@/components/vyom/VyomInput";
 import { VyomShell } from "@/components/vyom/VyomShell";
 import { isValidSuiAddress } from "@/lib/capsule-access";
+import { formatWalletAddress } from "@/lib/capsule-utils";
 import { useCapsules } from "@/hooks/useCapsules";
 import type { CapsuleAccessType } from "@/types/capsule";
 
@@ -30,6 +31,7 @@ export default function CreatePage() {
   const router = useRouter();
   const currentAccount = useCurrentAccount();
   const { isConnecting } = useCurrentWallet();
+  const { mutate: disconnectWallet, isPending: isDisconnecting } = useDisconnectWallet();
   const suiWallets = useWallets();
   const { createCapsule } = useCapsules();
   const defaultUnlock = splitUnlockValue(getDefaultUnlockValue());
@@ -241,9 +243,23 @@ export default function CreatePage() {
             </div>
 
             {currentAccount ? (
-              <p className="mt-5 rounded-[var(--glass-radius)] border border-cyan-100/10 bg-cyan-100/[0.025] px-4 py-3 text-sm leading-6 text-cyan-50/64">
-                Connected wallet will own this capsule in your Vault.
-              </p>
+              <div className="mt-5 flex flex-col gap-3 rounded-[var(--glass-radius)] border border-cyan-100/10 bg-cyan-100/[0.025] px-4 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+                <p
+                  className="text-sm leading-6 text-cyan-50/64"
+                  title={currentAccount.address}
+                  aria-label={`Connected wallet ${currentAccount.address}`}
+                >
+                  Connected wallet will save this capsule to your Vault. {formatWalletAddress(currentAccount.address)}
+                </p>
+                <button
+                  type="button"
+                  className="glass-btn glass-btn-secondary min-h-10 px-4 py-2 text-sm"
+                  onClick={() => disconnectWallet()}
+                  disabled={isDisconnecting}
+                >
+                  {isDisconnecting ? "Disconnecting..." : "Disconnect"}
+                </button>
+              </div>
             ) : (
               <div className="mt-5 flex flex-col gap-3 rounded-[var(--glass-radius)] border border-white/[0.07] bg-black/18 px-4 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
                 <p className="text-sm leading-6 text-white/48">

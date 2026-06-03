@@ -1,6 +1,6 @@
 "use client";
 
-import { ConnectButton, useCurrentAccount, useCurrentWallet, useWallets } from "@mysten/dapp-kit";
+import { ConnectButton, useCurrentAccount, useCurrentWallet, useDisconnectWallet, useWallets } from "@mysten/dapp-kit";
 import { ArrowLeft, LockKeyhole, Share2 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -10,7 +10,7 @@ import { EncryptedPreview, LockedCapsulePanel, UnlockedCapsulePanel, WalletAcces
 import { VyomButton } from "@/components/vyom/VyomButton";
 import { VyomShell } from "@/components/vyom/VyomShell";
 import { getCapsuleRevealState } from "@/lib/capsule-access";
-import { formatAccessMode, formatDateTime, getCountdown } from "@/lib/capsule-utils";
+import { formatAccessMode, formatDateTime, formatWalletAddress, getCountdown } from "@/lib/capsule-utils";
 import { getCapsuleById } from "@/lib/capsules";
 import type { Capsule } from "@/types/capsule";
 
@@ -33,6 +33,7 @@ export default function CapsulePage() {
   const isDemoCapsule = params.id === "demo" || params.id === "vyom-001";
   const currentAccount = useCurrentAccount();
   const { isConnecting } = useCurrentWallet();
+  const { mutate: disconnectWallet, isPending: isDisconnecting } = useDisconnectWallet();
   const suiWallets = useWallets();
   const [capsule, setCapsule] = useState<Capsule | undefined>();
   const [isLoading, setIsLoading] = useState(true);
@@ -131,6 +132,25 @@ export default function CapsulePage() {
               </VyomButton>
             ) : null}
           </div>
+          {currentAccount ? (
+            <div className="mt-5 flex flex-col gap-3 rounded-[var(--glass-radius)] border border-cyan-100/10 bg-cyan-100/[0.025] px-4 py-3 sm:inline-flex sm:flex-row sm:items-center">
+              <p
+                className="text-sm font-medium text-cyan-50/66"
+                title={currentAccount.address}
+                aria-label={`Connected wallet ${currentAccount.address}`}
+              >
+                Connected wallet: {formatWalletAddress(currentAccount.address)}
+              </p>
+              <button
+                type="button"
+                className="glass-btn glass-btn-secondary min-h-10 px-4 py-2 text-sm"
+                onClick={() => disconnectWallet()}
+                disabled={isDisconnecting}
+              >
+                {isDisconnecting ? "Disconnecting..." : "Disconnect"}
+              </button>
+            </div>
+          ) : null}
         </div>
         <CapsuleHero compact />
       </section>
@@ -158,10 +178,21 @@ export default function CapsulePage() {
                   state={revealState}
                   walletAddress={currentAccount?.address}
                   walletControl={
-                    <ConnectButton
-                      connectText={isConnecting ? "Connecting..." : "Connect Sui wallet to unlock"}
-                      className="vyom-connect-button glass-btn glass-btn-primary min-h-12 w-full px-5 py-3 text-sm"
-                    />
+                    currentAccount ? (
+                      <button
+                        type="button"
+                        className="glass-btn glass-btn-secondary min-h-12 w-full px-5 py-3 text-sm"
+                        onClick={() => disconnectWallet()}
+                        disabled={isDisconnecting}
+                      >
+                        {isDisconnecting ? "Disconnecting..." : "Disconnect wallet"}
+                      </button>
+                    ) : (
+                      <ConnectButton
+                        connectText={isConnecting ? "Connecting..." : "Connect Sui wallet to unlock"}
+                        className="vyom-connect-button glass-btn glass-btn-primary min-h-12 w-full px-5 py-3 text-sm"
+                      />
+                    )
                   }
                 />
                 <div className="product-surface border border-white/[0.08] bg-white/[0.025] p-6 backdrop-blur-none">

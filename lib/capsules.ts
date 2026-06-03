@@ -159,34 +159,6 @@ export async function getCapsules() {
   return getCapsulesForVault();
 }
 
-async function getLocalCapsulesByIds() {
-  const ids = readLocalCapsuleIds();
-
-  if (ids.length === 0) {
-    return [];
-  }
-
-  const localById = new Map(readLocalCapsules().map((capsule) => [capsule.id, capsule]));
-  const capsules = await Promise.all(
-    ids.map(async (id) => {
-      try {
-        const capsule = await getCapsuleById(id);
-        if (capsule) {
-          localById.set(capsule.id, capsule);
-        }
-        return capsule;
-      } catch {
-        return localById.get(id);
-      }
-    }),
-  );
-
-  const availableCapsules = capsules.filter((capsule): capsule is Capsule => Boolean(capsule));
-  writeLocalCapsules(availableCapsules);
-
-  return sortNewestFirst(availableCapsules);
-}
-
 function dedupeCapsules(capsules: CapsuleSummary[]) {
   const byId = new Map<string, CapsuleSummary>();
   capsules.forEach((capsule) => byId.set(capsule.id, capsule));
@@ -194,11 +166,10 @@ function dedupeCapsules(capsules: CapsuleSummary[]) {
 }
 
 export async function getCapsulesForVault(ownerWallet?: string | null): Promise<CapsuleSummary[]> {
-  const localCapsules = await getLocalCapsulesByIds();
   const normalizedOwnerWallet = normalizeSuiAddress(ownerWallet);
 
   if (!normalizedOwnerWallet) {
-    return localCapsules;
+    return [];
   }
 
   let remoteCapsules: CapsuleSummary[] = [];
@@ -215,7 +186,7 @@ export async function getCapsulesForVault(ownerWallet?: string | null): Promise<
     remoteCapsules = [];
   }
 
-  return dedupeCapsules([...localCapsules, ...remoteCapsules]);
+  return dedupeCapsules(remoteCapsules);
 }
 
 export async function getCapsuleById(id: string) {
