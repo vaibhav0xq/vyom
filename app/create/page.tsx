@@ -8,7 +8,7 @@ import { CreatePreview } from "@/components/vyom/ProductSurfaces";
 import { VyomButton } from "@/components/vyom/VyomButton";
 import { VyomInput } from "@/components/vyom/VyomInput";
 import { VyomShell } from "@/components/vyom/VyomShell";
-import { isValidEvmAddress } from "@/lib/capsule-access";
+import { isValidSuiAddress } from "@/lib/capsule-access";
 import { useCapsules } from "@/hooks/useCapsules";
 import type { CapsuleAccessType } from "@/types/capsule";
 
@@ -45,8 +45,8 @@ export default function CreatePage() {
     if (!message.trim()) {
       nextErrors.message = "Add a message to the future.";
     }
-    if (accessType === "wallet" && !isValidEvmAddress(recipient)) {
-      nextErrors.recipient = "Enter a valid 0x wallet address.";
+    if (accessType === "wallet" && !isValidSuiAddress(recipient)) {
+      nextErrors.recipient = "Enter a valid Sui wallet address.";
     }
     if (!unlockTimestamp || unlockTimestamp <= Date.now()) {
       nextErrors.unlockAt = "Choose a future unlock date.";
@@ -186,7 +186,7 @@ export default function CreatePage() {
                   </div>
                   <p className="relative z-[2] mt-3 text-sm leading-6 text-white/45">
                     {accessType === "wallet"
-                      ? "Only this wallet can reveal the capsule after unlock."
+                      ? "Only this Sui wallet can reveal the capsule after unlock."
                       : "Anyone with the private link can open it after unlock."}
                   </p>
                 </div>

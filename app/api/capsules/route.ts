@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createRemoteCapsule, hasSupabaseServerConfig } from "@/lib/supabase-capsules";
-import { isValidEvmAddress, normalizeAccessType } from "@/lib/capsule-access";
+import { isValidSuiAddress, normalizeAccessType } from "@/lib/capsule-access";
 import type { CapsuleAccessType, CapsuleVisibility, CreateCapsuleInput } from "@/types/capsule";
 
 function isVisibility(value: unknown): value is CapsuleVisibility {
@@ -81,9 +81,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid capsule data." }, { status: 400 });
   }
 
-  if (input.accessType === "wallet" && !isValidEvmAddress(input.recipient ?? "")) {
+  if (input.accessType === "wallet" && !isValidSuiAddress(input.recipient ?? "")) {
     return NextResponse.json(
-      { error: "Wallet gated capsules require a valid recipient wallet." },
+      { error: "Wallet gated capsules require a valid Sui recipient wallet." },
       { status: 400 },
     );
   }

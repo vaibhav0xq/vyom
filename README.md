@@ -9,6 +9,7 @@ Users can create a capsule, write a private message, set an unlock date, copy a 
 - Create sealed message capsules
 - Set a time-based unlock condition
 - Copy shareable capsule links
+- Create link-access or Sui wallet-gated capsules
 - Open shared capsule links across browsers and devices
 - Show locked countdown state
 - Reveal the message after unlock
@@ -31,13 +32,15 @@ Users can create a capsule, write a private message, set an unlock date, copy a 
 1. Create a capsule at `/create`.
 2. Write a private message.
 3. Set an unlock date and time.
-4. Seal the capsule.
-5. Vyom saves the capsule.
-6. The app redirects to `/capsule/[id]`.
-7. Copy and share the capsule link.
-8. Opening the link fetches the capsule by id.
-9. If the unlock time is in the future, the capsule stays sealed with a countdown.
-10. If the unlock time has passed, the message is revealed.
+4. Choose link access or wallet gated access.
+5. For wallet gated capsules, enter the recipient Sui wallet address.
+6. Seal the capsule.
+7. Vyom saves the capsule.
+8. The app redirects to `/capsule/[id]`.
+9. Copy and share the capsule link.
+10. Opening the link fetches the capsule by id.
+11. If the unlock time is in the future, the capsule stays sealed with a countdown.
+12. If the unlock time has passed and the access condition is satisfied, the message is revealed.
 
 ## Environment Variables
 
@@ -133,7 +136,8 @@ Create capsule → Copy link → Open link in another browser/device → Wait fo
 - Without Supabase, shareable links only work in the same browser because data is stored in `localStorage`.
 - With Supabase configured, `/capsule/[id]` links can be opened across browsers and devices.
 - Vault is local-device scoped until authentication is added.
-- Wallet gating, NFT gating, payments, file capsules, and advanced unlock logic are future features.
+- Sui wallet gating is app-level access control using an injected wallet provider. Real cryptographic encryption is not implemented yet.
+- NFT gating, payments, file capsules, and advanced unlock logic are future features.
 
 ## Product Direction
 
@@ -141,7 +145,7 @@ Vyom is designed to evolve into a system for programmable sealed capsules.
 
 Future unlock conditions may include:
 
-- Wallet-based access
+- Deeper Sui wallet access
 - NFT ownership
 - Payment-based unlock
 - One-time access

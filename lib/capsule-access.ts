@@ -6,8 +6,8 @@ export type CapsuleRevealState =
   | "wallet_mismatch"
   | "unlocked";
 
-export function isValidEvmAddress(value: string) {
-  return /^0x[a-fA-F0-9]{40}$/.test(value.trim());
+export function isValidSuiAddress(value: string) {
+  return /^0x[a-fA-F0-9]{64}$/.test(value.trim());
 }
 
 export function normalizeAccessType(input?: {
