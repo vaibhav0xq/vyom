@@ -8,10 +8,11 @@ import { CreatePreview } from "@/components/vyom/ProductSurfaces";
 import { VyomButton } from "@/components/vyom/VyomButton";
 import { VyomInput } from "@/components/vyom/VyomInput";
 import { VyomShell } from "@/components/vyom/VyomShell";
+import { isValidEvmAddress } from "@/lib/capsule-access";
 import { useCapsules } from "@/hooks/useCapsules";
-import type { CapsuleVisibility } from "@/types/capsule";
+import type { CapsuleAccessType } from "@/types/capsule";
 
-type FormErrors = Partial<Record<"title" | "message" | "unlockAt", string>>;
+type FormErrors = Partial<Record<"title" | "message" | "recipient" | "unlockAt", string>>;
 
 function getDefaultUnlockValue() {
   const date = new Date(Date.now() + 60 * 60 * 1000);
@@ -26,7 +27,7 @@ export default function CreatePage() {
   const [message, setMessage] = useState("");
   const [recipient, setRecipient] = useState("");
   const [unlockAt, setUnlockAt] = useState(getDefaultUnlockValue);
-  const visibility: CapsuleVisibility = "link";
+  const [accessType, setAccessType] = useState<CapsuleAccessType>("link");
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedback, setFeedback] = useState("");
@@ -43,6 +44,9 @@ export default function CreatePage() {
     }
     if (!message.trim()) {
       nextErrors.message = "Add a message to the future.";
+    }
+    if (accessType === "wallet" && !isValidEvmAddress(recipient)) {
+      nextErrors.recipient = "Enter a valid 0x wallet address.";
     }
     if (!unlockTimestamp || unlockTimestamp <= Date.now()) {
       nextErrors.unlockAt = "Choose a future unlock date.";
@@ -69,7 +73,7 @@ export default function CreatePage() {
         message,
         recipient,
         unlockAt: unlockTimestamp,
-        visibility,
+        accessType,
       });
 
       setFeedback("Capsule created.");
@@ -138,11 +142,12 @@ export default function CreatePage() {
                 />
                 <VyomInput
                   icon={UserRound}
-                  label="Recipient optional"
+                  label={accessType === "wallet" ? "Recipient wallet" : "Recipient optional"}
+                  error={errors.recipient}
                   className="secondary-form-field compact-form-field"
                   value={recipient}
                   onChange={(event) => setRecipient((event.target as HTMLInputElement).value)}
-                  placeholder="Name, email, or private note"
+                  placeholder={accessType === "wallet" ? "0x..." : "Name, email, or private note"}
                 />
                 <VyomInput
                   icon={CalendarClock}
@@ -153,14 +158,37 @@ export default function CreatePage() {
                   value={unlockAt}
                   onChange={(event) => setUnlockAt((event.target as HTMLInputElement).value)}
                 />
-                <div className="glass-input-wrapper secondary-form-field compact-form-field block p-4">
+                <div className="glass-input-wrapper secondary-form-field compact-form-field block p-4 md:col-span-2">
                   <span className="relative z-[2] flex items-center gap-3 text-xs font-medium uppercase tracking-[0.14em] text-white/40">
                     <Link2 className="h-4 w-4 text-cyan-100/60" aria-hidden="true" />
                     Access
                   </span>
-                  <div className="relative z-[2] mt-3 rounded-[4px] border border-cyan-100/10 bg-cyan-100/[0.045] px-4 py-3 text-sm font-medium text-cyan-50/90">
-                    Private link
+                  <div className="relative z-[2] mt-3 grid gap-2 sm:grid-cols-2">
+                    {[
+                      ["link", "Link access"],
+                      ["wallet", "Wallet gated"],
+                    ].map(([value, label]) => (
+                      <button
+                        key={value}
+                        type="button"
+                        aria-pressed={accessType === value}
+                        className={[
+                          "rounded-[6px] border px-4 py-3 text-left text-sm font-medium transition duration-300",
+                          accessType === value
+                            ? "border-cyan-100/30 bg-cyan-100/[0.09] text-cyan-50 shadow-[0_0_24px_rgba(64,221,255,0.08)]"
+                            : "border-white/[0.07] bg-black/18 text-white/55 hover:border-cyan-100/18 hover:text-white/82",
+                        ].join(" ")}
+                        onClick={() => setAccessType(value as CapsuleAccessType)}
+                      >
+                        {label}
+                      </button>
+                    ))}
                   </div>
+                  <p className="relative z-[2] mt-3 text-sm leading-6 text-white/45">
+                    {accessType === "wallet"
+                      ? "Only this wallet can reveal the capsule after unlock."
+                      : "Anyone with the private link can open it after unlock."}
+                  </p>
                 </div>
               </div>
             </div>
@@ -184,6 +212,7 @@ export default function CreatePage() {
                   setMessage("");
                   setRecipient("");
                   setUnlockAt(getDefaultUnlockValue());
+                  setAccessType("link");
                   setErrors({});
                   setFeedback("");
                 }}
@@ -193,7 +222,7 @@ export default function CreatePage() {
             </div>
           </form>
 
-          <CreatePreview data={{ title, message, recipient, unlockAt: unlockTimestamp, visibility }} />
+          <CreatePreview data={{ title, message, recipient, unlockAt: unlockTimestamp, accessType }} />
         </div>
       </section>
     </VyomShell>

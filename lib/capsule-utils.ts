@@ -34,11 +34,15 @@ export function formatDateTime(timestamp: number) {
   }).format(new Date(timestamp));
 }
 
-export function formatVisibility(visibility: Capsule["visibility"]) {
-  return visibility === "link" ? "Private link" : "Private access";
+export function formatAccessMode(capsule: Pick<Capsule, "accessType">) {
+  return capsule.accessType === "wallet" ? "Wallet gated" : "Link access";
 }
 
 export function formatRecipient(capsule: Capsule) {
+  if (capsule.accessType === "wallet") {
+    return capsule.recipient?.trim() || "Wallet required";
+  }
+
   return capsule.recipient?.trim() || "Only you";
 }
 

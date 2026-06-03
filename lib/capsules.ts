@@ -1,4 +1,5 @@
 import type { Capsule, CreateCapsuleInput } from "@/types/capsule";
+import { normalizeAccessType } from "./capsule-access";
 
 const STORAGE_KEY = "vyom_capsules";
 const LOCAL_IDS_KEY = "vyom_capsule_ids";
@@ -28,7 +29,7 @@ function readLocalCapsules(): Capsule[] {
       return [];
     }
 
-    return parsed.filter(isCapsule);
+    return parsed.map(normalizeCapsule).filter((capsule): capsule is Capsule => Boolean(capsule));
   } catch {
     return [];
   }
@@ -77,21 +78,40 @@ function rememberLocalCapsule(capsule: Capsule) {
   writeLocalCapsuleIds([capsule.id, ...readLocalCapsuleIds()]);
 }
 
-function isCapsule(value: unknown): value is Capsule {
+function normalizeCapsule(value: unknown): Capsule | undefined {
   if (!value || typeof value !== "object") {
-    return false;
+    return undefined;
   }
 
-  const capsule = value as Capsule;
-  return (
-    typeof capsule.id === "string" &&
-    typeof capsule.title === "string" &&
-    typeof capsule.message === "string" &&
-    typeof capsule.unlockAt === "number" &&
-    typeof capsule.createdAt === "number" &&
-    (capsule.visibility === "private" || capsule.visibility === "link") &&
-    (typeof capsule.recipient === "undefined" || typeof capsule.recipient === "string")
-  );
+  const capsule = value as Partial<Capsule>;
+  const { id, title, message, unlockAt, createdAt, recipient } = capsule;
+  const isValid =
+    typeof id === "string" &&
+    typeof title === "string" &&
+    typeof message === "string" &&
+    typeof unlockAt === "number" &&
+    typeof createdAt === "number" &&
+    (typeof capsule.recipient === "undefined" || typeof capsule.recipient === "string");
+
+  if (!isValid) {
+    return undefined;
+  }
+
+  const accessType = normalizeAccessType({
+    accessType: capsule.accessType,
+    visibility: capsule.visibility,
+  });
+
+  return {
+    id,
+    title,
+    message,
+    recipient,
+    unlockAt,
+    accessType,
+    visibility: capsule.visibility ?? (accessType === "wallet" ? "private" : "link"),
+    createdAt,
+  };
 }
 
 function createId() {
@@ -103,13 +123,16 @@ function createId() {
 }
 
 function createLocalCapsule(data: CreateCapsuleInput): Capsule {
+  const accessType = normalizeAccessType(data);
+
   return {
     id: createId(),
     title: data.title.trim(),
     message: data.message.trim(),
     recipient: data.recipient?.trim() || undefined,
     unlockAt: data.unlockAt,
-    visibility: data.visibility,
+    accessType,
+    visibility: accessType === "wallet" ? "private" : "link",
     createdAt: Date.now(),
   };
 }

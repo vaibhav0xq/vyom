@@ -1,9 +1,14 @@
 import { NextResponse } from "next/server";
 import { createRemoteCapsule, hasSupabaseServerConfig } from "@/lib/supabase-capsules";
-import type { CapsuleVisibility, CreateCapsuleInput } from "@/types/capsule";
+import { isValidEvmAddress, normalizeAccessType } from "@/lib/capsule-access";
+import type { CapsuleAccessType, CapsuleVisibility, CreateCapsuleInput } from "@/types/capsule";
 
 function isVisibility(value: unknown): value is CapsuleVisibility {
   return value === "private" || value === "link";
+}
+
+function isAccessType(value: unknown): value is CapsuleAccessType {
+  return value === "link" || value === "wallet";
 }
 
 function parseCreateInput(value: unknown): CreateCapsuleInput | undefined {
@@ -11,22 +16,30 @@ function parseCreateInput(value: unknown): CreateCapsuleInput | undefined {
     return undefined;
   }
 
-  const data = value as CreateCapsuleInput;
+  const data = value as CreateCapsuleInput & {
+    access_type?: CapsuleAccessType;
+  };
   if (
     typeof data.title !== "string" ||
     typeof data.message !== "string" ||
-    typeof data.unlockAt !== "number" ||
-    !isVisibility(data.visibility)
+    typeof data.unlockAt !== "number"
   ) {
     return undefined;
   }
+
+  const accessType = normalizeAccessType({
+    accessType: isAccessType(data.accessType) ? data.accessType : undefined,
+    access_type: isAccessType(data.access_type) ? data.access_type : undefined,
+    visibility: isVisibility(data.visibility) ? data.visibility : undefined,
+  });
 
   return {
     title: data.title,
     message: data.message,
     recipient: typeof data.recipient === "string" ? data.recipient : undefined,
     unlockAt: data.unlockAt,
-    visibility: data.visibility,
+    accessType,
+    visibility: accessType === "wallet" ? "private" : "link",
   };
 }
 
@@ -66,6 +79,13 @@ export async function POST(request: Request) {
   const input = parseCreateInput(await request.json().catch(() => undefined));
   if (!input || !input.title.trim() || !input.message.trim() || input.unlockAt <= Date.now()) {
     return NextResponse.json({ error: "Invalid capsule data." }, { status: 400 });
+  }
+
+  if (input.accessType === "wallet" && !isValidEvmAddress(input.recipient ?? "")) {
+    return NextResponse.json(
+      { error: "Wallet gated capsules require a valid recipient wallet." },
+      { status: 400 },
+    );
   }
 
   try {

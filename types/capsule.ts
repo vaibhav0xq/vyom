@@ -1,4 +1,5 @@
 export type CapsuleVisibility = "private" | "link";
+export type CapsuleAccessType = "link" | "wallet";
 
 export type Capsule = {
   id: string;
@@ -6,7 +7,8 @@ export type Capsule = {
   message: string;
   recipient?: string;
   unlockAt: number;
-  visibility: CapsuleVisibility;
+  accessType: CapsuleAccessType;
+  visibility?: CapsuleVisibility;
   createdAt: number;
 };
 
@@ -15,5 +17,6 @@ export type CreateCapsuleInput = {
   message: string;
   recipient?: string;
   unlockAt: number;
-  visibility: CapsuleVisibility;
+  accessType: CapsuleAccessType;
+  visibility?: CapsuleVisibility;
 };

@@ -1,13 +1,13 @@
-import { CalendarClock, EyeOff, KeyRound, Link2, LockKeyhole, MessageSquareText, UserRound } from "lucide-react";
+import { CalendarClock, EyeOff, KeyRound, Link2, LockKeyhole, MessageSquareText, UserRound, Wallet } from "lucide-react";
 import {
   createEncryptedPreview,
   formatDateTime,
   formatRecipient,
-  formatVisibility,
+  formatAccessMode,
   getCapsuleStatus,
   type Countdown,
 } from "@/lib/capsule-utils";
-import type { Capsule, CapsuleVisibility } from "@/types/capsule";
+import type { Capsule, CapsuleAccessType } from "@/types/capsule";
 import { VyomButton } from "./VyomButton";
 
 type PreviewData = {
@@ -15,7 +15,7 @@ type PreviewData = {
   message: string;
   recipient?: string;
   unlockAt?: number;
-  visibility: CapsuleVisibility;
+  accessType: CapsuleAccessType;
 };
 
 export function CreatePreview({ data }: { data: PreviewData }) {
@@ -35,8 +35,12 @@ export function CreatePreview({ data }: { data: PreviewData }) {
       <div className="mt-8 grid gap-4">
         <PreviewRow icon={MessageSquareText} label="Message to the future" value={hasMessage ? "Hidden until unlock" : "Add a message"} />
         <PreviewRow icon={CalendarClock} label="Unlock time" value={data.unlockAt ? formatDateTime(data.unlockAt) : "Choose unlock time"} />
-        <PreviewRow icon={UserRound} label="Recipient optional" value={data.recipient?.trim() || "Optional"} />
-        <PreviewRow icon={Link2} label="Access" value={formatVisibility(data.visibility)} />
+        <PreviewRow
+          icon={data.accessType === "wallet" ? Wallet : UserRound}
+          label={data.accessType === "wallet" ? "Recipient wallet" : "Recipient optional"}
+          value={data.recipient?.trim() || (data.accessType === "wallet" ? "Wallet required" : "Optional")}
+        />
+        <PreviewRow icon={Link2} label="Access" value={formatAccessMode(data)} />
       </div>
       <div className="sealed-preview mt-5 rounded-[var(--glass-radius)] border border-cyan-100/10 bg-cyan-100/[0.025] p-5">
         <p className="text-xs font-medium uppercase tracking-[0.14em] text-cyan-100/46">Sealed note</p>
@@ -94,7 +98,7 @@ export function CapsuleCard({ capsule }: { capsule: Capsule }) {
           </p>
           <p className="flex items-center gap-3">
             <Link2 className="h-4 w-4 text-cyan-100/50" aria-hidden="true" />
-            {formatVisibility(capsule.visibility)}
+            {formatAccessMode(capsule)}
           </p>
         </div>
       </div>
@@ -173,6 +177,55 @@ export function UnlockedCapsulePanel({
   );
 }
 
+export function WalletAccessPanel({
+  capsule,
+  state,
+  walletAddress,
+  onConnect,
+  isConnecting,
+}: {
+  capsule: Capsule;
+  state: "wallet_required" | "wallet_mismatch";
+  walletAddress?: string | null;
+  onConnect: () => void;
+  isConnecting: boolean;
+}) {
+  const title =
+    state === "wallet_mismatch"
+      ? "This wallet cannot open this capsule."
+      : "Connect wallet to unlock";
+  const body =
+    state === "wallet_mismatch"
+      ? "The connected wallet does not match the recipient wallet for this capsule."
+      : "This capsule is wallet gated. Connect the recipient wallet after the unlock time to reveal the message.";
+
+  return (
+    <div className="product-surface locked-emphasis relative overflow-hidden border border-white/[0.08] bg-white/[0.025] p-6 backdrop-blur-none">
+      <div className="flex items-start justify-between gap-5">
+        <div className="min-w-0">
+          <p className="text-xs font-medium uppercase tracking-[0.16em] text-cyan-100/55">wallet gated</p>
+          <h2 className="mt-3 break-words text-3xl font-medium leading-tight tracking-[-0.014em] text-white sm:text-4xl">{title}</h2>
+          <p className="mt-4 max-w-xl text-sm leading-7 text-white/52">{body}</p>
+        </div>
+        <Wallet className="h-10 w-10 shrink-0 text-cyan-100/60" aria-hidden="true" />
+      </div>
+
+      <CapsuleMeta capsule={capsule} />
+      <EncryptedPreview message={capsule.message} />
+
+      {walletAddress ? (
+        <p className="mt-5 break-words rounded-[var(--glass-radius)] border border-white/[0.06] bg-black/22 p-4 text-sm leading-7 text-white/58">
+          Connected wallet: {walletAddress}
+        </p>
+      ) : null}
+
+      <VyomButton className="mt-6 w-full" onClick={onConnect} disabled={isConnecting}>
+        {isConnecting ? "Connecting..." : "Connect wallet"}
+      </VyomButton>
+    </div>
+  );
+}
+
 export function EncryptedPreview({ message }: { message: string }) {
   return (
     <div className="sealed-preview mt-5 rounded-[var(--glass-radius)] border border-cyan-100/10 bg-cyan-100/[0.025] p-5">
@@ -226,7 +279,7 @@ function CapsuleMeta({ capsule }: { capsule: Capsule }) {
     <div className="mt-5 grid gap-4 sm:grid-cols-3">
       <MetaBlock icon={CalendarClock} label="Unlock date" value={formatDateTime(capsule.unlockAt)} />
       <MetaBlock icon={UserRound} label="Recipient" value={formatRecipient(capsule)} />
-      <MetaBlock icon={Link2} label="Access" value={formatVisibility(capsule.visibility)} />
+      <MetaBlock icon={Link2} label="Access" value={formatAccessMode(capsule)} />
     </div>
   );
 }

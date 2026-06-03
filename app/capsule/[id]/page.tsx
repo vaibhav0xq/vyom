@@ -5,12 +5,23 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { CapsuleHero } from "@/components/vyom/CapsuleHero";
-import { EncryptedPreview, LockedCapsulePanel, UnlockedCapsulePanel } from "@/components/vyom/ProductSurfaces";
+import { EncryptedPreview, LockedCapsulePanel, UnlockedCapsulePanel, WalletAccessPanel } from "@/components/vyom/ProductSurfaces";
 import { VyomButton } from "@/components/vyom/VyomButton";
 import { VyomShell } from "@/components/vyom/VyomShell";
-import { formatDateTime, getCountdown, isCapsuleUnlocked } from "@/lib/capsule-utils";
+import { getCapsuleRevealState } from "@/lib/capsule-access";
+import { formatAccessMode, formatDateTime, getCountdown } from "@/lib/capsule-utils";
 import { getCapsuleById } from "@/lib/capsules";
 import type { Capsule } from "@/types/capsule";
+
+type EthereumProvider = {
+  request: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
+};
+
+declare global {
+  interface Window {
+    ethereum?: EthereumProvider;
+  }
+}
 
 export default function CapsulePage() {
   const params = useParams<{ id: string }>();
@@ -18,6 +29,10 @@ export default function CapsulePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [now, setNow] = useState(0);
   const [copyLabel, setCopyLabel] = useState("Copy link");
+  const [walletAddress, setWalletAddress] = useState<string | null>(null);
+  const [walletMessage, setWalletMessage] = useState("");
+  const [isConnectingWallet, setIsConnectingWallet] = useState(false);
+  const [hasWalletProvider, setHasWalletProvider] = useState(true);
 
   useEffect(() => {
     const handle = window.setTimeout(() => {
@@ -46,11 +61,65 @@ export default function CapsulePage() {
     };
   }, []);
 
-  const unlocked = capsule ? isCapsuleUnlocked(capsule, now) : false;
+  useEffect(() => {
+    const handle = window.setTimeout(() => {
+      if (!window.ethereum) {
+        setHasWalletProvider(false);
+        return;
+      }
+
+      setHasWalletProvider(true);
+
+      async function loadConnectedWallet() {
+        try {
+          const accounts = await window.ethereum?.request({ method: "eth_accounts" });
+          const [address] = Array.isArray(accounts) ? accounts : [];
+          if (typeof address === "string") {
+            setWalletAddress(address);
+          }
+        } catch {
+          // Silent by design: connecting remains an explicit user action.
+        }
+      }
+
+      void loadConnectedWallet();
+    }, 0);
+
+    return () => window.clearTimeout(handle);
+  }, []);
+
+  const revealState = capsule
+    ? getCapsuleRevealState(capsule, { now, walletAddress })
+    : "time_locked";
+  const unlocked = revealState === "unlocked";
   const countdown = useMemo(
     () => getCountdown(capsule?.unlockAt ?? now, now),
     [capsule?.unlockAt, now],
   );
+
+  async function connectWallet() {
+    if (!window.ethereum) {
+      setWalletMessage("Wallet not found. Open this link in a wallet-enabled browser.");
+      return;
+    }
+
+    setIsConnectingWallet(true);
+    setWalletMessage("");
+
+    try {
+      const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+      const [address] = Array.isArray(accounts) ? accounts : [];
+      if (typeof address === "string") {
+        setWalletAddress(address);
+      } else {
+        setWalletMessage("Wallet connection did not return an address.");
+      }
+    } catch {
+      setWalletMessage("Wallet connection was not completed.");
+    } finally {
+      setIsConnectingWallet(false);
+    }
+  }
 
   async function copyLink() {
     const url = window.location.href;
@@ -74,7 +143,9 @@ export default function CapsulePage() {
           </Link>
           <div className="liquid-glass mb-5 inline-flex max-w-full items-center gap-3 px-5 py-3.5 text-xs font-medium uppercase tracking-[0.14em] text-cyan-50/80">
             <LockKeyhole className="h-4 w-4 text-cyan-100/80" aria-hidden="true" />
-            <span className="min-w-0 truncate">{unlocked ? "Private capsule" : "Sealed capsule"}</span>
+            <span className="min-w-0 truncate">
+              {capsule ? formatAccessMode(capsule) : "Sealed capsule"}
+            </span>
           </div>
           <h1 className="max-w-3xl text-4xl font-medium leading-[1.02] tracking-[-0.018em] text-white sm:text-5xl lg:text-6xl">
             {isLoading ? "Loading capsule..." : capsule ? unlocked ? "This capsule is ready." : "This capsule is sealed." : "Capsule not found."}
@@ -83,7 +154,9 @@ export default function CapsulePage() {
             {capsule
               ? unlocked
                 ? "The message can now be opened."
-                : `It will stay hidden until ${formatDateTime(capsule.unlockAt)}.`
+                : capsule.accessType === "wallet" && revealState !== "time_locked"
+                  ? "Connect the recipient wallet to reveal the message."
+                  : `It will stay hidden until ${formatDateTime(capsule.unlockAt)}.`
               : "This link does not match a saved capsule."}
           </p>
           <div className="mt-8 flex flex-col gap-4 sm:flex-row">
@@ -115,13 +188,39 @@ export default function CapsulePage() {
                   <EncryptedPreview message={capsule.message} />
                 </div>
               </>
+            ) : revealState === "wallet_required" || revealState === "wallet_mismatch" ? (
+              <>
+                <WalletAccessPanel
+                  capsule={capsule}
+                  state={revealState}
+                  walletAddress={walletAddress}
+                  onConnect={connectWallet}
+                  isConnecting={isConnectingWallet}
+                />
+                <div className="product-surface border border-white/[0.08] bg-white/[0.025] p-6 backdrop-blur-none">
+                  <h2 className="text-3xl font-medium tracking-[-0.014em] text-white">Wallet gated capsule</h2>
+                  <p className="mt-4 text-white/52">
+                    Time unlock is complete. The message remains hidden until the recipient wallet is connected.
+                  </p>
+                  {walletMessage || !hasWalletProvider ? (
+                    <p className="mt-5 rounded-[var(--glass-radius)] border border-white/[0.08] bg-black/22 p-4 text-sm leading-7 text-white/66">
+                      {walletMessage || "Wallet not found. Open this link in a wallet-enabled browser."}
+                    </p>
+                  ) : null}
+                  <div className="mt-6">
+                    <VyomButton variant="secondary" onClick={copyLink}>
+                      {copyLabel}
+                    </VyomButton>
+                  </div>
+                </div>
+              </>
             ) : (
               <>
                 <LockedCapsulePanel capsule={capsule} countdown={countdown} />
                 <div className="product-surface border border-white/[0.08] bg-white/[0.025] p-6 backdrop-blur-none">
                   <h2 className="text-3xl font-medium tracking-[-0.014em] text-white">Share sealed capsule</h2>
                   <p className="mt-4 text-white/52">
-                    Anyone with this link can see the capsule. The message stays hidden until the unlock time.
+                    Anyone with this link can see the capsule page. The message stays hidden until unlock conditions are met.
                   </p>
                   <div className="mt-6">
                     <VyomButton onClick={copyLink}>

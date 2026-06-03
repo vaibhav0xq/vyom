@@ -1,4 +1,5 @@
 import type { Capsule, CreateCapsuleInput } from "@/types/capsule";
+import { normalizeAccessType } from "./capsule-access";
 
 const SUPABASE_TABLE = "capsules";
 
@@ -8,7 +9,8 @@ type SupabaseCapsuleRow = {
   message: string;
   recipient: string | null;
   unlock_at: number;
-  visibility: Capsule["visibility"];
+  access_type?: Capsule["accessType"] | null;
+  visibility?: Capsule["visibility"] | null;
   created_at: number;
 };
 
@@ -65,7 +67,8 @@ function toRow(capsule: Capsule): SupabaseCapsuleRow {
     message: capsule.message,
     recipient: capsule.recipient ?? null,
     unlock_at: capsule.unlockAt,
-    visibility: capsule.visibility,
+    access_type: capsule.accessType,
+    visibility: capsule.accessType === "wallet" ? "private" : "link",
     created_at: capsule.createdAt,
   };
 }
@@ -77,19 +80,25 @@ function fromRow(row: SupabaseCapsuleRow): Capsule {
     message: row.message,
     recipient: row.recipient ?? undefined,
     unlockAt: row.unlock_at,
-    visibility: row.visibility,
+    accessType: normalizeAccessType({
+      access_type: row.access_type ?? undefined,
+      visibility: row.visibility ?? undefined,
+    }),
+    visibility: row.visibility ?? (row.access_type === "wallet" ? "private" : "link"),
     createdAt: row.created_at,
   };
 }
 
 export async function createRemoteCapsule(data: CreateCapsuleInput) {
+  const accessType = normalizeAccessType(data);
   const capsule: Capsule = {
     id: createId(),
     title: data.title.trim(),
     message: data.message.trim(),
     recipient: data.recipient?.trim() || undefined,
     unlockAt: data.unlockAt,
-    visibility: data.visibility,
+    accessType,
+    visibility: accessType === "wallet" ? "private" : "link",
     createdAt: Date.now(),
   };
 
