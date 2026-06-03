@@ -14,8 +14,23 @@ import { formatAccessMode, formatDateTime, getCountdown } from "@/lib/capsule-ut
 import { getCapsuleById } from "@/lib/capsules";
 import type { Capsule } from "@/types/capsule";
 
+function createDemoCapsule(): Capsule {
+  return {
+    id: "demo",
+    title: "Demo capsule",
+    message:
+      "This is a preview message. In a real capsule, the sealed message remains hidden until the unlock conditions are met.",
+    recipient: undefined,
+    unlockAt: Date.now() + 1000 * 60 * 60 * 36,
+    accessType: "link",
+    visibility: "link",
+    createdAt: Date.now(),
+  };
+}
+
 export default function CapsulePage() {
   const params = useParams<{ id: string }>();
+  const isDemoCapsule = params.id === "demo" || params.id === "vyom-001";
   const currentAccount = useCurrentAccount();
   const { isConnecting } = useCurrentWallet();
   const suiWallets = useWallets();
@@ -27,6 +42,12 @@ export default function CapsulePage() {
   useEffect(() => {
     const handle = window.setTimeout(() => {
       async function loadCapsule() {
+        if (isDemoCapsule) {
+          setCapsule(createDemoCapsule());
+          setIsLoading(false);
+          return;
+        }
+
         try {
           setCapsule(await getCapsuleById(params.id));
         } catch {
@@ -39,7 +60,7 @@ export default function CapsulePage() {
     }, 0);
 
     return () => window.clearTimeout(handle);
-  }, [params.id]);
+  }, [isDemoCapsule, params.id]);
 
   useEffect(() => {
     const initialTick = window.setTimeout(() => setNow(Date.now()), 0);
@@ -88,10 +109,12 @@ export default function CapsulePage() {
             </span>
           </div>
           <h1 className="max-w-3xl text-4xl font-medium leading-[1.02] tracking-[-0.018em] text-white sm:text-5xl lg:text-6xl">
-            {isLoading ? "Loading capsule..." : capsule ? unlocked ? "This capsule is ready." : "This capsule is sealed." : "Capsule not found."}
+            {isLoading ? "Loading capsule..." : isDemoCapsule ? "Demo capsule." : capsule ? unlocked ? "This capsule is ready." : "This capsule is sealed." : "Capsule not found."}
           </h1>
           <p className="mt-5 max-w-xl text-base leading-8 tracking-[0.003em] text-white/58 sm:text-lg">
-            {capsule
+            {isDemoCapsule
+              ? "This is a preview of how a sealed capsule appears before unlock."
+              : capsule
               ? unlocked
                 ? "The message can now be opened."
                 : capsule.accessType === "wallet" && revealState !== "time_locked"
@@ -164,7 +187,9 @@ export default function CapsulePage() {
                 <div className="product-surface border border-white/[0.08] bg-white/[0.025] p-6 backdrop-blur-none">
                   <h2 className="text-3xl font-medium tracking-[-0.014em] text-white">Share sealed capsule</h2>
                   <p className="mt-4 text-white/52">
-                    Anyone with this link can see the capsule page. The message stays hidden until unlock conditions are met.
+                    {isDemoCapsule
+                      ? "This demo does not create or save a capsule. It shows the sealed state before unlock."
+                      : "Anyone with this link can see the capsule page. The message stays hidden until unlock conditions are met."}
                   </p>
                   <div className="mt-6">
                     <VyomButton onClick={copyLink}>

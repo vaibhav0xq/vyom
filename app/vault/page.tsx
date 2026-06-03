@@ -18,6 +18,11 @@ export default function VaultPage() {
   const [status, setStatus] = useState<"all" | "locked" | "unlocked">("all");
   const hasVisibleCapsules = capsules.length > 0;
   const hasSuiWallet = suiWallets.length > 0;
+  const statusOptions = [
+    { value: "all", label: "All statuses" },
+    { value: "locked", label: "Locked" },
+    { value: "unlocked", label: "Unlocked" },
+  ] as const;
 
   const filteredCapsules = useMemo(() => {
     return capsules.filter((capsule) => {
@@ -92,7 +97,7 @@ export default function VaultPage() {
         ) : null}
 
         {hasVisibleCapsules ? (
-        <div className="mb-6 grid gap-4 border border-white/[0.08] bg-white/[0.025] p-4 backdrop-blur-2xl md:grid-cols-[1fr_auto_auto]">
+        <div className="mb-6 grid gap-4 border border-white/[0.08] bg-white/[0.025] p-4 backdrop-blur-2xl lg:grid-cols-[1fr_auto_auto]">
           <label className="flex min-h-12 items-center gap-3 border border-white/[0.07] bg-black/25 px-4 text-white/70">
             <Search className="h-4 w-4 text-cyan-100/60" aria-hidden="true" />
             <input
@@ -102,15 +107,24 @@ export default function VaultPage() {
               value={query}
             />
           </label>
-          <select
-            className="min-h-12 border border-cyan-100/18 bg-cyan-100/[0.06] px-5 text-sm font-medium text-cyan-50 outline-none"
-            onChange={(event) => setStatus(event.target.value as typeof status)}
-            value={status}
-          >
-            <option value="all">All statuses</option>
-            <option value="locked">Locked</option>
-            <option value="unlocked">Unlocked</option>
-          </select>
+          <div className="grid min-h-12 grid-cols-3 gap-2 border border-cyan-100/10 bg-black/20 p-1.5">
+            {statusOptions.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                aria-pressed={status === option.value}
+                className={[
+                  "min-h-9 px-3 text-xs font-medium uppercase tracking-[0.1em] transition duration-300",
+                  status === option.value
+                    ? "border border-cyan-100/28 bg-cyan-100/[0.09] text-cyan-50 shadow-[0_0_20px_rgba(64,221,255,0.08)]"
+                    : "border border-transparent bg-transparent text-white/44 hover:border-cyan-100/12 hover:text-white/76",
+                ].join(" ")}
+                onClick={() => setStatus(option.value)}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
           <div className="flex min-h-12 items-center border border-white/[0.08] bg-white/[0.035] px-5 text-sm font-medium text-white/70">
             Newest first
           </div>

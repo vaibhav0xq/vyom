@@ -7,7 +7,7 @@ const links = [
   { href: "/", label: "Home" },
   { href: "/create", label: "Create" },
   { href: "/vault", label: "Vault" },
-  { href: "/capsule/vyom-001", label: "Capsule Demo" },
+  { href: "/capsule/demo", label: "Capsule Demo" },
 ];
 
 export function VyomShell({ children }: { children: React.ReactNode }) {
