@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUpRight, CalendarClock, Link2, LockKeyhole, MessageSquareText, UserRound } from "lucide-react";
+import { ArrowUpRight, CalendarClock, Clock3, Link2, LockKeyhole, MessageSquareText, UserRound } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { type FormEvent, useMemo, useState } from "react";
 import { CapsuleHero } from "@/components/vyom/CapsuleHero";
@@ -20,22 +20,33 @@ function getDefaultUnlockValue() {
   return date.toISOString().slice(0, 16);
 }
 
+function splitUnlockValue(value: string) {
+  const [date = "", time = ""] = value.split("T");
+  return { date, time };
+}
+
 export default function CreatePage() {
   const router = useRouter();
   const { createCapsule } = useCapsules();
+  const defaultUnlock = splitUnlockValue(getDefaultUnlockValue());
   const [title, setTitle] = useState("");
   const [message, setMessage] = useState("");
   const [recipient, setRecipient] = useState("");
-  const [unlockAt, setUnlockAt] = useState(getDefaultUnlockValue);
+  const [unlockDate, setUnlockDate] = useState(defaultUnlock.date);
+  const [unlockTime, setUnlockTime] = useState(defaultUnlock.time);
   const [accessType, setAccessType] = useState<CapsuleAccessType>("link");
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedback, setFeedback] = useState("");
 
   const unlockTimestamp = useMemo(() => {
-    const value = new Date(unlockAt).getTime();
+    if (!unlockDate || !unlockTime) {
+      return undefined;
+    }
+
+    const value = new Date(`${unlockDate}T${unlockTime}`).getTime();
     return Number.isNaN(value) ? undefined : value;
-  }, [unlockAt]);
+  }, [unlockDate, unlockTime]);
 
   function validate() {
     const nextErrors: FormErrors = {};
@@ -149,15 +160,45 @@ export default function CreatePage() {
                   onChange={(event) => setRecipient((event.target as HTMLInputElement).value)}
                   placeholder={accessType === "wallet" ? "0x..." : "Name, email, or private note"}
                 />
-                <VyomInput
-                  icon={CalendarClock}
-                  label="Unlock date/time"
-                  error={errors.unlockAt}
-                  className="secondary-form-field compact-form-field"
-                  type="datetime-local"
-                  value={unlockAt}
-                  onChange={(event) => setUnlockAt((event.target as HTMLInputElement).value)}
-                />
+                <div className="glass-input-wrapper secondary-form-field compact-form-field block p-4 md:col-span-2">
+                  <span className="relative z-[2] flex items-center gap-3 text-xs font-medium uppercase tracking-[0.14em] text-white/40">
+                    <CalendarClock className="h-4 w-4 text-cyan-100/60" aria-hidden="true" />
+                    Unlock date/time
+                  </span>
+                  <div className="relative z-[2] mt-3 grid gap-3 sm:grid-cols-2">
+                    <label className="unlock-field-shell block rounded-[6px] border border-white/[0.07] bg-black/18 px-4 py-3 transition duration-300 focus-within:border-cyan-100/30 focus-within:bg-cyan-100/[0.045] hover:border-cyan-100/18">
+                      <span className="mb-2 flex items-center gap-2 text-xs font-medium uppercase tracking-[0.12em] text-white/35">
+                        <CalendarClock className="h-3.5 w-3.5 text-cyan-100/55" aria-hidden="true" />
+                        Unlock date
+                      </span>
+                      <input
+                        className="unlock-native-input w-full bg-transparent text-sm font-medium text-cyan-50 outline-none"
+                        type="date"
+                        value={unlockDate}
+                        onChange={(event) => setUnlockDate(event.target.value)}
+                      />
+                    </label>
+                    <label className="unlock-field-shell block rounded-[6px] border border-white/[0.07] bg-black/18 px-4 py-3 transition duration-300 focus-within:border-cyan-100/30 focus-within:bg-cyan-100/[0.045] hover:border-cyan-100/18">
+                      <span className="mb-2 flex items-center gap-2 text-xs font-medium uppercase tracking-[0.12em] text-white/35">
+                        <Clock3 className="h-3.5 w-3.5 text-cyan-100/55" aria-hidden="true" />
+                        Unlock time
+                      </span>
+                      <input
+                        className="unlock-native-input w-full bg-transparent text-sm font-medium text-cyan-50 outline-none"
+                        type="time"
+                        value={unlockTime}
+                        onChange={(event) => setUnlockTime(event.target.value)}
+                      />
+                    </label>
+                  </div>
+                  {errors.unlockAt ? (
+                    <span className="relative z-[2] mt-3 block text-sm text-red-300/90">{errors.unlockAt}</span>
+                  ) : (
+                    <p className="relative z-[2] mt-3 text-sm leading-6 text-white/42">
+                      Choose when this capsule can be opened.
+                    </p>
+                  )}
+                </div>
                 <div className="glass-input-wrapper secondary-form-field compact-form-field block p-4 md:col-span-2">
                   <span className="relative z-[2] flex items-center gap-3 text-xs font-medium uppercase tracking-[0.14em] text-white/40">
                     <Link2 className="h-4 w-4 text-cyan-100/60" aria-hidden="true" />
@@ -211,7 +252,9 @@ export default function CreatePage() {
                   setTitle("");
                   setMessage("");
                   setRecipient("");
-                  setUnlockAt(getDefaultUnlockValue());
+                  const nextUnlock = splitUnlockValue(getDefaultUnlockValue());
+                  setUnlockDate(nextUnlock.date);
+                  setUnlockTime(nextUnlock.time);
                   setAccessType("link");
                   setErrors({});
                   setFeedback("");

@@ -472,6 +472,29 @@ button {
   font-size: 0.92rem;
 }
 
+.unlock-field-shell {
+  color-scheme: dark;
+}
+
+.unlock-native-input {
+  min-height: 1.8rem;
+  color-scheme: dark;
+}
+
+.unlock-native-input::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  filter: invert(0.88) sepia(0.18) saturate(1.8) hue-rotate(145deg);
+  opacity: 0.72;
+  transition:
+    opacity var(--t-hover) var(--ease-out),
+    filter var(--t-hover) var(--ease-out);
+}
+
+.unlock-native-input::-webkit-calendar-picker-indicator:hover {
+  filter: invert(0.96) sepia(0.28) saturate(2.4) hue-rotate(145deg);
+  opacity: 1;
+}
+
 /* ═══════════════════════════════════════════
    GLASS TOGGLE
    ═══════════════════════════════════════════ */
