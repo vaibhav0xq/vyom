@@ -7,7 +7,6 @@ import { CapsuleHero } from "@/components/vyom/CapsuleHero";
 import { CreatePreview } from "@/components/vyom/ProductSurfaces";
 import { VyomButton } from "@/components/vyom/VyomButton";
 import { VyomInput } from "@/components/vyom/VyomInput";
-import { VyomSelect } from "@/components/vyom/VyomSelect";
 import { VyomShell } from "@/components/vyom/VyomShell";
 import { useCapsules } from "@/hooks/useCapsules";
 import type { CapsuleVisibility } from "@/types/capsule";
@@ -27,7 +26,7 @@ export default function CreatePage() {
   const [message, setMessage] = useState("");
   const [recipient, setRecipient] = useState("");
   const [unlockAt, setUnlockAt] = useState(getDefaultUnlockValue);
-  const [visibility, setVisibility] = useState<CapsuleVisibility>("link");
+  const visibility: CapsuleVisibility = "link";
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedback, setFeedback] = useState("");
@@ -85,7 +84,7 @@ export default function CreatePage() {
 
   return (
     <VyomShell>
-      <section className="cinematic-section relative mx-auto grid min-h-[58vh] w-full max-w-7xl items-center gap-8 px-5 pb-10 pt-28 sm:min-h-[62vh] sm:px-8 lg:grid-cols-[0.86fr_1.14fr]">
+      <section className="cinematic-section relative mx-auto grid min-h-[52vh] w-full max-w-7xl items-center gap-8 px-5 pb-8 pt-32 sm:min-h-[58vh] sm:px-8 sm:pt-28 lg:grid-cols-[0.86fr_1.14fr]">
         <div className="reveal-stack max-w-2xl">
           <div className="liquid-glass mb-5 inline-flex items-center gap-3 px-5 py-3.5 text-xs font-medium uppercase tracking-[0.16em] text-cyan-50/80">
             <LockKeyhole className="h-4 w-4 text-cyan-100/80" aria-hidden="true" />
@@ -109,14 +108,14 @@ export default function CreatePage() {
       </section>
 
       <section className="relative border-y border-white/[0.06]">
-        <div className="mx-auto grid w-full max-w-7xl gap-6 px-5 py-16 sm:px-8 sm:py-18 lg:grid-cols-[1.05fr_0.95fr]">
-          <form className="product-surface border border-white/[0.08] bg-white/[0.025] p-6 backdrop-blur-none" onSubmit={handleSubmit}>
-            <div className="mb-8">
+        <div className="mx-auto grid w-full max-w-7xl gap-5 px-5 py-10 sm:px-8 sm:py-12 lg:grid-cols-[1.05fr_0.95fr]">
+          <form className="product-surface border border-white/[0.08] bg-white/[0.025] p-5 backdrop-blur-none sm:p-6" onSubmit={handleSubmit}>
+            <div className="mb-5">
               <p className="text-xs font-medium uppercase tracking-[0.16em] text-cyan-100/50">new capsule</p>
-              <h2 className="mt-3 text-3xl font-medium tracking-[-0.014em] text-white">Seal your capsule.</h2>
+              <h2 className="mt-2 text-3xl font-medium tracking-[-0.014em] text-white">Seal your capsule.</h2>
             </div>
 
-            <div className="grid gap-4">
+            <div className="grid gap-3.5">
               <VyomInput
                 as="textarea"
                 icon={MessageSquareText}
@@ -127,42 +126,43 @@ export default function CreatePage() {
                 onChange={(event) => setMessage((event.target as HTMLTextAreaElement).value)}
                 placeholder="Write the message you want to preserve"
               />
-              <VyomInput
-                icon={LockKeyhole}
-                label="Capsule title"
-                error={errors.title}
-                className="secondary-form-field"
-                value={title}
-                onChange={(event) => setTitle((event.target as HTMLInputElement).value)}
-                placeholder="A note for June"
-              />
-              <VyomInput
-                icon={UserRound}
-                label="Recipient optional"
-                className="secondary-form-field"
-                value={recipient}
-                onChange={(event) => setRecipient((event.target as HTMLInputElement).value)}
-                placeholder="Name, email, or private note"
-              />
-              <VyomInput
-                icon={CalendarClock}
-                label="Unlock date/time"
-                error={errors.unlockAt}
-                className="secondary-form-field"
-                type="datetime-local"
-                value={unlockAt}
-                onChange={(event) => setUnlockAt((event.target as HTMLInputElement).value)}
-              />
-              <VyomSelect
-                icon={Link2}
-                label="Access"
-                className="secondary-form-field"
-                value={visibility}
-                onChange={(event) => setVisibility(event.target.value as CapsuleVisibility)}
-              >
-                <option value="link">Private link</option>
-                <option value="private">Recipient gated</option>
-              </VyomSelect>
+              <div className="grid gap-3.5 md:grid-cols-2">
+                <VyomInput
+                  icon={LockKeyhole}
+                  label="Capsule title"
+                  error={errors.title}
+                  className="secondary-form-field compact-form-field"
+                  value={title}
+                  onChange={(event) => setTitle((event.target as HTMLInputElement).value)}
+                  placeholder="A note for June"
+                />
+                <VyomInput
+                  icon={UserRound}
+                  label="Recipient optional"
+                  className="secondary-form-field compact-form-field"
+                  value={recipient}
+                  onChange={(event) => setRecipient((event.target as HTMLInputElement).value)}
+                  placeholder="Name, email, or private note"
+                />
+                <VyomInput
+                  icon={CalendarClock}
+                  label="Unlock date/time"
+                  error={errors.unlockAt}
+                  className="secondary-form-field compact-form-field"
+                  type="datetime-local"
+                  value={unlockAt}
+                  onChange={(event) => setUnlockAt((event.target as HTMLInputElement).value)}
+                />
+                <div className="glass-input-wrapper secondary-form-field compact-form-field block p-4">
+                  <span className="relative z-[2] flex items-center gap-3 text-xs font-medium uppercase tracking-[0.14em] text-white/40">
+                    <Link2 className="h-4 w-4 text-cyan-100/60" aria-hidden="true" />
+                    Access
+                  </span>
+                  <div className="relative z-[2] mt-3 rounded-[4px] border border-cyan-100/10 bg-cyan-100/[0.045] px-4 py-3 text-sm font-medium text-cyan-50/90">
+                    Private link
+                  </div>
+                </div>
+              </div>
             </div>
 
             {feedback ? <p className="mt-5 text-sm font-medium text-cyan-100/72">{feedback}</p> : null}
@@ -184,7 +184,6 @@ export default function CreatePage() {
                   setMessage("");
                   setRecipient("");
                   setUnlockAt(getDefaultUnlockValue());
-                  setVisibility("link");
                   setErrors({});
                   setFeedback("");
                 }}

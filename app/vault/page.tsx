@@ -83,10 +83,10 @@ export default function VaultPage() {
           </div>
         ) : (
           <div className="product-surface border border-white/[0.08] bg-white/[0.025] p-8 backdrop-blur-2xl">
-            <h2 className="text-3xl font-medium tracking-[-0.014em] text-white">No capsules sealed yet.</h2>
+            <h2 className="text-3xl font-medium tracking-[-0.014em] text-white">No capsules saved on this device yet.</h2>
             <p className="mt-4 max-w-[18rem] text-white/54 sm:max-w-xl">
               {capsules.length === 0
-                ? "Seal your first message and it will wait here until its unlock time."
+                ? "Seal your first message on this browser and it will wait here until its unlock time."
                 : "Try changing the search or status filter."}
             </p>
             <div className="mt-6">

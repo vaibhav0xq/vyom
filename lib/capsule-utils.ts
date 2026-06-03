@@ -35,7 +35,7 @@ export function formatDateTime(timestamp: number) {
 }
 
 export function formatVisibility(visibility: Capsule["visibility"]) {
-  return visibility === "link" ? "Private link" : "Recipient gated";
+  return visibility === "link" ? "Private link" : "Private access";
 }
 
 export function formatRecipient(capsule: Capsule) {

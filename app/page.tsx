@@ -14,14 +14,14 @@ export default function Home() {
 
   return (
     <VyomShell>
-      <section className="cinematic-section relative mx-auto grid min-h-[86vh] w-full max-w-7xl items-center gap-8 px-5 pb-14 pt-28 sm:px-8 lg:grid-cols-[0.82fr_1.18fr] lg:pt-24">
-        <div className="reveal-stack relative z-10 min-w-0 max-sm:max-w-[350px]">
+      <section className="cinematic-section relative mx-auto grid w-full max-w-7xl items-center gap-6 px-5 pb-12 pt-36 sm:min-h-[86vh] sm:px-8 sm:pt-28 lg:grid-cols-[0.82fr_1.18fr] lg:pt-24">
+        <div className="reveal-stack relative z-10 min-w-0">
           <div className="liquid-glass mb-7 inline-flex w-full max-w-full items-center gap-3 px-5 py-3.5 text-[0.68rem] font-medium uppercase tracking-[0.12em] text-cyan-50/80 sm:w-auto sm:text-xs sm:tracking-[0.16em]">
             <LockKeyhole className="h-4 w-4 shrink-0 text-cyan-100/80" aria-hidden="true" />
-            <span className="min-w-0 whitespace-normal leading-5">Encrypted capsules for private messages</span>
+            <span className="min-w-0 whitespace-normal leading-5">Sealed capsules for private messages</span>
           </div>
 
-          <h1 className="max-w-[13ch] text-[2.85rem] font-medium leading-[0.96] tracking-[-0.018em] text-white min-[430px]:text-[3.4rem] sm:max-w-4xl sm:text-6xl lg:text-[4.7rem] xl:text-[5.7rem]">
+          <h1 className="max-w-[13ch] text-[2.75rem] font-medium leading-[0.98] tracking-[-0.018em] text-white min-[430px]:text-[3.25rem] sm:max-w-4xl sm:text-6xl lg:text-[4.7rem] xl:text-[5.7rem]">
             Seal a message for the future.
           </h1>
 

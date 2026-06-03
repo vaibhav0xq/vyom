@@ -432,7 +432,7 @@ button {
 }
 
 .primary-message-field .glass-input {
-  min-height: 13rem;
+  min-height: 11.5rem;
   color: rgba(245, 251, 255, 0.95);
   font-size: 1rem;
   line-height: 1.95;
@@ -460,6 +460,16 @@ button {
     0 6px 28px rgba(0, 0, 0, 0.32),
     0 0 26px rgba(64, 221, 255, 0.08),
     inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.compact-form-field {
+  padding: 1rem;
+}
+
+.compact-form-field .glass-input {
+  margin-top: 0.75rem;
+  padding: 0.72rem 0.8rem;
+  font-size: 0.92rem;
 }
 
 /* ═══════════════════════════════════════════

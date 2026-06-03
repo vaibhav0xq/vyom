@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Vyom | Encrypted Programmable Capsules on Sui",
+  title: "Vyom | Sealed Programmable Capsules on Sui",
   description:
     "Seal private messages, choose an unlock time, and share capsules safely.",
   openGraph: {

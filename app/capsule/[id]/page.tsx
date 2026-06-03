@@ -84,7 +84,7 @@ export default function CapsulePage() {
               ? unlocked
                 ? "The message can now be opened."
                 : `It will stay hidden until ${formatDateTime(capsule.unlockAt)}.`
-              : "This link does not match a capsule stored in this browser."}
+              : "This link does not match a saved capsule."}
           </p>
           <div className="mt-8 flex flex-col gap-4 sm:flex-row">
             <VyomButton href="/vault">Back to vault</VyomButton>
@@ -135,7 +135,7 @@ export default function CapsulePage() {
             <div className="product-surface border border-white/[0.08] bg-white/[0.025] p-8 backdrop-blur-none lg:col-span-2">
               <h2 className="text-3xl font-medium tracking-[-0.014em] text-white">Capsule not found</h2>
               <p className="mt-4 max-w-xl text-white/52">
-                Capsules are stored locally in this browser. Create a capsule or open a link from this device.
+                Create a capsule or check that the shared link is complete.
               </p>
               <div className="mt-6">
                 <VyomButton href="/create">Create capsule</VyomButton>
