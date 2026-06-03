@@ -1,4 +1,4 @@
-import type { Capsule } from "@/types/capsule";
+import type { Capsule, CapsuleSummary } from "@/types/capsule";
 
 export type Countdown = {
   days: number;
@@ -7,11 +7,11 @@ export type Countdown = {
   seconds: number;
 };
 
-export function isCapsuleUnlocked(capsule: Capsule, now = Date.now()) {
+export function isCapsuleUnlocked(capsule: Pick<Capsule, "unlockAt">, now = Date.now()) {
   return now >= capsule.unlockAt;
 }
 
-export function getCapsuleStatus(capsule: Capsule, now = Date.now()) {
+export function getCapsuleStatus(capsule: Pick<Capsule, "unlockAt">, now = Date.now()) {
   return isCapsuleUnlocked(capsule, now) ? "Unlocked" : "Locked";
 }
 
@@ -51,7 +51,7 @@ export function formatWalletAddress(address?: string | null) {
   return `${value.slice(0, 6)}...${value.slice(-4)}`;
 }
 
-export function formatRecipient(capsule: Capsule) {
+export function formatRecipient(capsule: Pick<CapsuleSummary, "accessType" | "recipient">) {
   if (capsule.accessType === "wallet") {
     return formatWalletAddress(capsule.recipient) || "Wallet required";
   }

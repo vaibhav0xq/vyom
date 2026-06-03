@@ -9,7 +9,7 @@ import {
   getCapsuleStatus,
   type Countdown,
 } from "@/lib/capsule-utils";
-import type { Capsule, CapsuleAccessType } from "@/types/capsule";
+import type { Capsule, CapsuleAccessType, CapsuleSummary } from "@/types/capsule";
 import { VyomButton } from "./VyomButton";
 
 type PreviewData = {
@@ -84,7 +84,7 @@ function PreviewRow({
   );
 }
 
-export function CapsuleCard({ capsule }: { capsule: Capsule }) {
+export function CapsuleCard({ capsule }: { capsule: CapsuleSummary }) {
   const status = getCapsuleStatus(capsule);
   const ready = status === "Unlocked";
   const statusLabel = ready ? "Ready" : "Sealed";

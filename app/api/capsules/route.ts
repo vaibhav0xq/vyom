@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { createRemoteCapsule, hasSupabaseServerConfig } from "@/lib/supabase-capsules";
-import { isValidSuiAddress, normalizeAccessType } from "@/lib/capsule-access";
+import { createRemoteCapsule, getRemoteCapsulesByOwnerWallet, hasSupabaseServerConfig } from "@/lib/supabase-capsules";
+import { isValidSuiAddress, normalizeAccessType, normalizeSuiAddress } from "@/lib/capsule-access";
 import type { CapsuleAccessType, CapsuleVisibility, CreateCapsuleInput } from "@/types/capsule";
 
 function isVisibility(value: unknown): value is CapsuleVisibility {
@@ -18,6 +18,7 @@ function parseCreateInput(value: unknown): CreateCapsuleInput | undefined {
 
   const data = value as CreateCapsuleInput & {
     access_type?: CapsuleAccessType;
+    owner_wallet?: string;
   };
   if (
     typeof data.title !== "string" ||
@@ -33,14 +34,43 @@ function parseCreateInput(value: unknown): CreateCapsuleInput | undefined {
     visibility: isVisibility(data.visibility) ? data.visibility : undefined,
   });
 
+  const ownerWallet = data.ownerWallet ?? data.owner_wallet;
+
   return {
     title: data.title,
     message: data.message,
     recipient: typeof data.recipient === "string" ? data.recipient : undefined,
+    ownerWallet: typeof ownerWallet === "string" ? ownerWallet.trim() : undefined,
     unlockAt: data.unlockAt,
     accessType,
     visibility: accessType === "wallet" ? "private" : "link",
   };
+}
+
+export async function GET(request: Request) {
+  if (!hasSupabaseServerConfig()) {
+    return NextResponse.json(
+      { code: "SUPABASE_NOT_CONFIGURED", error: "Supabase is not configured." },
+      { status: 503 },
+    );
+  }
+
+  const ownerWallet = new URL(request.url).searchParams.get("owner_wallet");
+  const normalizedOwnerWallet = normalizeSuiAddress(ownerWallet);
+
+  if (!normalizedOwnerWallet) {
+    return NextResponse.json(
+      { error: "A valid owner wallet is required." },
+      { status: 400 },
+    );
+  }
+
+  try {
+    const capsules = await getRemoteCapsulesByOwnerWallet(normalizedOwnerWallet);
+    return NextResponse.json(capsules);
+  } catch {
+    return NextResponse.json({ error: "Capsules could not be loaded." }, { status: 500 });
+  }
 }
 
 type SafeDebugError = {
@@ -84,6 +114,13 @@ export async function POST(request: Request) {
   if (input.accessType === "wallet" && !isValidSuiAddress(input.recipient ?? "")) {
     return NextResponse.json(
       { error: "Wallet gated capsules require a valid Sui recipient wallet." },
+      { status: 400 },
+    );
+  }
+
+  if (input.ownerWallet && !isValidSuiAddress(input.ownerWallet)) {
+    return NextResponse.json(
+      { error: "Owner wallet must be a valid Sui address." },
       { status: 400 },
     );
   }

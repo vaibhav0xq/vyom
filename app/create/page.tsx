@@ -1,5 +1,6 @@
 "use client";
 
+import { useCurrentAccount } from "@mysten/dapp-kit";
 import { ArrowUpRight, CalendarClock, Clock3, Link2, LockKeyhole, MessageSquareText, UserRound } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { type FormEvent, useMemo, useState } from "react";
@@ -27,6 +28,7 @@ function splitUnlockValue(value: string) {
 
 export default function CreatePage() {
   const router = useRouter();
+  const currentAccount = useCurrentAccount();
   const { createCapsule } = useCapsules();
   const defaultUnlock = splitUnlockValue(getDefaultUnlockValue());
   const [title, setTitle] = useState("");
@@ -83,6 +85,7 @@ export default function CreatePage() {
         title,
         message,
         recipient,
+        ownerWallet: currentAccount?.address,
         unlockAt: unlockTimestamp,
         accessType,
       });
@@ -233,6 +236,12 @@ export default function CreatePage() {
                 </div>
               </div>
             </div>
+
+            {currentAccount ? (
+              <p className="mt-5 rounded-[var(--glass-radius)] border border-cyan-100/10 bg-cyan-100/[0.025] px-4 py-3 text-sm leading-6 text-cyan-50/64">
+                Connected wallet will own this capsule in your Vault.
+              </p>
+            ) : null}
 
             {feedback ? <p className="mt-5 text-sm font-medium text-cyan-100/72">{feedback}</p> : null}
 

@@ -6,16 +6,20 @@ export type Capsule = {
   title: string;
   message: string;
   recipient?: string;
+  ownerWallet?: string;
   unlockAt: number;
   accessType: CapsuleAccessType;
   visibility?: CapsuleVisibility;
   createdAt: number;
 };
 
+export type CapsuleSummary = Omit<Capsule, "message">;
+
 export type CreateCapsuleInput = {
   title: string;
   message: string;
   recipient?: string;
+  ownerWallet?: string;
   unlockAt: number;
   accessType: CapsuleAccessType;
   visibility?: CapsuleVisibility;

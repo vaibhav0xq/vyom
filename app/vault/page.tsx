@@ -1,5 +1,6 @@
 "use client";
 
+import { ConnectButton, useCurrentAccount, useCurrentWallet } from "@mysten/dapp-kit";
 import { Plus, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { CapsuleCard } from "@/components/vyom/ProductSurfaces";
@@ -9,7 +10,9 @@ import { getCapsuleStatus } from "@/lib/capsule-utils";
 import { useCapsules } from "@/hooks/useCapsules";
 
 export default function VaultPage() {
-  const { capsules, isLoading } = useCapsules();
+  const currentAccount = useCurrentAccount();
+  const { isConnecting } = useCurrentWallet();
+  const { capsules, isLoading } = useCapsules(currentAccount?.address);
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<"all" | "locked" | "unlocked">("all");
 
@@ -44,6 +47,21 @@ export default function VaultPage() {
             <Plus className="h-4 w-4" aria-hidden="true" />
           </VyomButton>
         </div>
+
+        {!currentAccount ? (
+          <div className="product-surface mb-6 border border-cyan-100/12 bg-cyan-100/[0.025] p-6 backdrop-blur-2xl">
+            <h2 className="text-3xl font-medium tracking-[-0.014em] text-white">Connect Sui wallet to view your vault.</h2>
+            <p className="mt-4 max-w-xl text-white/54">
+              Capsules created with this wallet will appear here. Direct shared links still work even when your Vault is empty.
+            </p>
+            <div className="mt-6">
+              <ConnectButton
+                connectText={isConnecting ? "Connecting..." : "Connect Sui wallet"}
+                className="glass-btn glass-btn-primary min-h-12 px-5 py-3 text-sm"
+              />
+            </div>
+          </div>
+        ) : null}
 
         {capsules.length > 0 ? (
         <div className="mb-6 grid gap-4 border border-white/[0.08] bg-white/[0.025] p-4 backdrop-blur-2xl md:grid-cols-[1fr_auto_auto]">
@@ -83,10 +101,14 @@ export default function VaultPage() {
           </div>
         ) : (
           <div className="product-surface border border-white/[0.08] bg-white/[0.025] p-8 backdrop-blur-2xl">
-            <h2 className="text-3xl font-medium tracking-[-0.014em] text-white">No capsules saved on this device yet.</h2>
+            <h2 className="text-3xl font-medium tracking-[-0.014em] text-white">
+              {currentAccount ? "No capsules found for this wallet." : "No capsules saved on this device yet."}
+            </h2>
             <p className="mt-4 max-w-[18rem] text-white/54 sm:max-w-xl">
               {capsules.length === 0
-                ? "Seal your first message on this browser and it will wait here until its unlock time."
+                ? currentAccount
+                  ? "Create a capsule while this wallet is connected, or open a shared capsule link directly."
+                  : "Seal your first message on this browser and it will wait here until its unlock time."
                 : "Try changing the search or status filter."}
             </p>
             <div className="mt-6">

@@ -1,5 +1,5 @@
-import type { Capsule, CreateCapsuleInput } from "@/types/capsule";
-import { normalizeAccessType } from "./capsule-access";
+import type { Capsule, CapsuleSummary, CreateCapsuleInput } from "@/types/capsule";
+import { normalizeAccessType, normalizeSuiAddress } from "./capsule-access";
 
 const STORAGE_KEY = "vyom_capsules";
 const LOCAL_IDS_KEY = "vyom_capsule_ids";
@@ -8,6 +8,10 @@ type ApiError = {
   code?: string;
   error?: string;
 };
+
+function sortNewestFirst<T extends { createdAt: number }>(capsules: T[]) {
+  return capsules.sort((a, b) => b.createdAt - a.createdAt);
+}
 
 function canUseStorage() {
   return typeof window !== "undefined" && typeof window.localStorage !== "undefined";
@@ -107,6 +111,7 @@ function normalizeCapsule(value: unknown): Capsule | undefined {
     title,
     message,
     recipient,
+    ownerWallet: normalizeSuiAddress(capsule.ownerWallet),
     unlockAt,
     accessType,
     visibility: capsule.visibility ?? (accessType === "wallet" ? "private" : "link"),
@@ -130,6 +135,7 @@ function createLocalCapsule(data: CreateCapsuleInput): Capsule {
     title: data.title.trim(),
     message: data.message.trim(),
     recipient: data.recipient?.trim() || undefined,
+    ownerWallet: normalizeSuiAddress(data.ownerWallet),
     unlockAt: data.unlockAt,
     accessType,
     visibility: accessType === "wallet" ? "private" : "link",
@@ -150,6 +156,10 @@ function isMissingRemoteStore(error: ApiError) {
 }
 
 export async function getCapsules() {
+  return getCapsulesForVault();
+}
+
+async function getLocalCapsulesByIds() {
   const ids = readLocalCapsuleIds();
 
   if (ids.length === 0) {
@@ -174,7 +184,38 @@ export async function getCapsules() {
   const availableCapsules = capsules.filter((capsule): capsule is Capsule => Boolean(capsule));
   writeLocalCapsules(availableCapsules);
 
-  return availableCapsules.sort((a, b) => b.createdAt - a.createdAt);
+  return sortNewestFirst(availableCapsules);
+}
+
+function dedupeCapsules(capsules: CapsuleSummary[]) {
+  const byId = new Map<string, CapsuleSummary>();
+  capsules.forEach((capsule) => byId.set(capsule.id, capsule));
+  return sortNewestFirst(Array.from(byId.values()));
+}
+
+export async function getCapsulesForVault(ownerWallet?: string | null): Promise<CapsuleSummary[]> {
+  const localCapsules = await getLocalCapsulesByIds();
+  const normalizedOwnerWallet = normalizeSuiAddress(ownerWallet);
+
+  if (!normalizedOwnerWallet) {
+    return localCapsules;
+  }
+
+  let remoteCapsules: CapsuleSummary[] = [];
+
+  try {
+    const response = await fetch(`/api/capsules?owner_wallet=${encodeURIComponent(normalizedOwnerWallet)}`, {
+      cache: "no-store",
+    });
+
+    if (response.ok) {
+      remoteCapsules = (await response.json()) as CapsuleSummary[];
+    }
+  } catch {
+    remoteCapsules = [];
+  }
+
+  return dedupeCapsules([...localCapsules, ...remoteCapsules]);
 }
 
 export async function getCapsuleById(id: string) {

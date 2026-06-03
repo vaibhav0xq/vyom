@@ -1,13 +1,14 @@
-import type { Capsule, CreateCapsuleInput } from "@/types/capsule";
-import { normalizeAccessType } from "./capsule-access";
+import type { Capsule, CapsuleSummary, CreateCapsuleInput } from "@/types/capsule";
+import { normalizeAccessType, normalizeSuiAddress } from "./capsule-access";
 
 const SUPABASE_TABLE = "capsules";
 
 type SupabaseCapsuleRow = {
   id: string;
   title: string;
-  message: string;
+  message?: string;
   recipient: string | null;
+  owner_wallet?: string | null;
   unlock_at: number;
   access_type?: Capsule["accessType"] | null;
   visibility?: Capsule["visibility"] | null;
@@ -66,6 +67,7 @@ function toRow(capsule: Capsule): SupabaseCapsuleRow {
     title: capsule.title,
     message: capsule.message,
     recipient: capsule.recipient ?? null,
+    owner_wallet: normalizeSuiAddress(capsule.ownerWallet) ?? null,
     unlock_at: capsule.unlockAt,
     access_type: capsule.accessType,
     visibility: capsule.accessType === "wallet" ? "private" : "link",
@@ -77,8 +79,25 @@ function fromRow(row: SupabaseCapsuleRow): Capsule {
   return {
     id: row.id,
     title: row.title,
-    message: row.message,
+    message: row.message ?? "",
     recipient: row.recipient ?? undefined,
+    ownerWallet: normalizeSuiAddress(row.owner_wallet),
+    unlockAt: row.unlock_at,
+    accessType: normalizeAccessType({
+      access_type: row.access_type ?? undefined,
+      visibility: row.visibility ?? undefined,
+    }),
+    visibility: row.visibility ?? (row.access_type === "wallet" ? "private" : "link"),
+    createdAt: row.created_at,
+  };
+}
+
+function fromSummaryRow(row: SupabaseCapsuleRow): CapsuleSummary {
+  return {
+    id: row.id,
+    title: row.title,
+    recipient: row.recipient ?? undefined,
+    ownerWallet: normalizeSuiAddress(row.owner_wallet),
     unlockAt: row.unlock_at,
     accessType: normalizeAccessType({
       access_type: row.access_type ?? undefined,
@@ -96,6 +115,7 @@ export async function createRemoteCapsule(data: CreateCapsuleInput) {
     title: data.title.trim(),
     message: data.message.trim(),
     recipient: data.recipient?.trim() || undefined,
+    ownerWallet: normalizeSuiAddress(data.ownerWallet),
     unlockAt: data.unlockAt,
     accessType,
     visibility: accessType === "wallet" ? "private" : "link",
@@ -119,4 +139,13 @@ export async function getRemoteCapsuleById(id: string) {
   );
 
   return rows[0] ? fromRow(rows[0]) : undefined;
+}
+
+export async function getRemoteCapsulesByOwnerWallet(ownerWallet: string) {
+  const select = "id,title,recipient,owner_wallet,unlock_at,access_type,visibility,created_at";
+  const rows = await requestSupabase<SupabaseCapsuleRow[]>(
+    `${SUPABASE_TABLE}?owner_wallet=eq.${encodeURIComponent(ownerWallet)}&select=${select}&order=created_at.desc`,
+  );
+
+  return rows.map(fromSummaryRow);
 }

@@ -5,18 +5,19 @@ import {
   createCapsule as createStoredCapsule,
   deleteCapsule as deleteStoredCapsule,
   getCapsuleById,
-  getCapsules,
+  getCapsulesForVault,
 } from "@/lib/capsules";
-import type { Capsule, CreateCapsuleInput } from "@/types/capsule";
+import type { CapsuleSummary, CreateCapsuleInput } from "@/types/capsule";
 
-export function useCapsules() {
-  const [capsules, setCapsules] = useState<Capsule[]>([]);
+export function useCapsules(ownerWallet?: string | null) {
+  const [capsules, setCapsules] = useState<CapsuleSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const refresh = useCallback(() => {
     async function loadCapsules() {
+      setIsLoading(true);
       try {
-        setCapsules(await getCapsules());
+        setCapsules(await getCapsulesForVault(ownerWallet));
       } catch {
         setCapsules([]);
       }
@@ -24,7 +25,7 @@ export function useCapsules() {
     }
 
     void loadCapsules();
-  }, []);
+  }, [ownerWallet]);
 
   useEffect(() => {
     const handle = window.setTimeout(refresh, 0);

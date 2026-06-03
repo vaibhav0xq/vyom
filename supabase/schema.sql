@@ -3,6 +3,7 @@ create table if not exists public.capsules (
   title text not null,
   message text not null,
   recipient text,
+  owner_wallet text,
   unlock_at bigint not null,
   access_type text not null default 'link' check (access_type in ('link', 'wallet')),
   visibility text not null check (visibility in ('private', 'link')),
@@ -11,6 +12,9 @@ create table if not exists public.capsules (
 
 alter table public.capsules
   add column if not exists access_type text not null default 'link';
+
+alter table public.capsules
+  add column if not exists owner_wallet text;
 
 do $$
 begin
@@ -34,3 +38,6 @@ alter table public.capsules
   validate constraint capsules_access_type_check;
 
 alter table public.capsules enable row level security;
+
+grant usage on schema public to service_role;
+grant select, insert, update, delete on table public.capsules to service_role;
