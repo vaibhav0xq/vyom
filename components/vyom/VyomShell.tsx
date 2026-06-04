@@ -1,7 +1,7 @@
-import { Orbit } from "lucide-react";
 import Link from "next/link";
 import { CosmicBackground } from "@/components/vyom/CosmicBackground";
 import { VyomButton } from "@/components/vyom/VyomButton";
+import { VyomLogo } from "@/components/vyom/VyomLogo";
 
 const links = [
   { href: "/", label: "Home" },
@@ -19,13 +19,7 @@ export function VyomShell({ children }: { children: React.ReactNode }) {
         <nav className="mx-auto w-full max-w-7xl px-5 sm:px-8">
           <div className="flex h-16 items-center justify-between sm:h-20">
             <Link href="/" className="group flex items-center gap-3" aria-label="Vyom home">
-              <span className="liquid-glass relative grid h-10 w-10 place-items-center !rounded-full">
-                <span className="absolute inset-1 rounded-full border border-violet-200/8" />
-                <Orbit className="h-4 w-4 text-cyan-100 transition duration-300 group-hover:rotate-45" aria-hidden="true" />
-              </span>
-              <span className="text-sm font-medium uppercase tracking-[0.22em] text-white/85">
-                Vyom
-              </span>
+              <VyomLogo />
             </Link>
 
             <div className="hidden items-center gap-8 text-xs font-medium uppercase tracking-[0.14em] text-white/48 md:flex">
