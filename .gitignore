@@ -81,5 +81,5 @@ supabase/.branches/
 supabase/.temp/
 supabase/.env
 
-# Keep Supabase schema files tracked
-!supabase/schema.sql
+# Local schema / database setup file
+supabase/schema.sql

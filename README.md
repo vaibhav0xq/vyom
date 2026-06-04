@@ -1,81 +1,205 @@
 # Vyom
 
-Vyom is a cinematic web app for creating sealed digital capsules that unlock at a chosen time.
+Vyom is a Sui-aligned sealed capsule platform for creating time-locked messages that can be shared by link and optionally revealed only by a specific Sui wallet.
 
-Users can create a capsule, write a private message, set an unlock date, copy a shareable link, and open the capsule later. Before unlock, the message remains hidden behind a sealed preview and countdown. After unlock, the full message is revealed.
+The product introduces a simple interaction model:
 
-## Current Release
+> Create a capsule, define when it unlocks, choose who can reveal it, and share it.
 
-- Create sealed message capsules
-- Set a time-based unlock condition
-- Copy shareable capsule links
-- Create link-access or Sui wallet-gated capsules
-- View wallet-owned capsules in Vault with a connected Sui wallet
-- Open shared capsule links across browsers and devices
-- Show locked countdown state
-- Reveal the message after unlock
-- Preserve message paragraph formatting after unlock
-- Use Supabase persistence for deployed shareable links
-- Use localStorage as a local development fallback
-- Responsive premium cosmic/glass interface
+Vyom focuses on programmable digital capsules: private messages that remain sealed until time and access conditions are satisfied.
 
-## Tech Stack
+## Live Deployment
+
+https://vyom-capsules.netlify.app
+
+## Repository
+
+https://github.com/vaibhav0xq/vyom
+
+## Project Abstract
+
+Vyom lets users create sealed message capsules that unlock under clear rules.
+
+A capsule can be opened after a selected unlock time. Creators can choose simple link-based access or restrict reveal to a specific Sui wallet. Connected Sui wallets also act as Vault identity, allowing users to view capsules they created across browsers and devices.
+
+The current release demonstrates the core product workflow for time-based unlocks, shareable capsule links, Sui wallet-gated reveal, and wallet-owned capsule management.
+
+## Screenshots
+
+### Homepage
+
+![Vyom homepage](./public/assert/homepage.png)
+
+### Capsule Creation
+
+![Create capsule](./public/assert/create.png)
+
+### Wallet-Owned Vault
+
+![Wallet-owned vault](./public/assert/vault.png)
+
+### Demo Capsule
+
+![Demo capsule](./public/assert/demo.png)
+
+## Product Capabilities
+
+### Time-Based Unlock
+
+Each capsule has a scheduled unlock time. Until that time arrives, the message remains sealed and the recipient sees a locked state with countdown information.
+
+After the unlock time passes, the capsule becomes eligible for reveal based on its access mode.
+
+### Shareable Capsule Links
+
+Every capsule generates a direct link. This allows creators to send a capsule to another person without requiring the recipient to use the Vault.
+
+### Link Access
+
+Link access capsules can be revealed by anyone with the capsule link after the unlock time has passed.
+
+This mode is designed for simple future messages, announcements, personal notes, or lightweight capsule sharing.
+
+### Sui Wallet-Gated Reveal
+
+Wallet-gated capsules require the recipient to connect the matching Sui wallet before the message is revealed.
+
+This mode adds wallet identity as an access condition, making the reveal specific to the intended Sui address.
+
+### Wallet-Owned Vault
+
+The Vault is tied to the connected Sui wallet.
+
+Capsules created while a Sui wallet is connected are associated with that wallet and can be viewed from another browser or device by connecting the same wallet.
+
+Capsules created without a connected wallet remain accessible through their shared capsule links, but they are not listed in the wallet-owned Vault.
+
+### Demo Experience
+
+Vyom includes a static demo capsule route so visitors can preview the sealed capsule experience without creating a real capsule.
+
+## Core Workflow
+
+1. The creator writes a message.
+2. The creator sets an unlock date and time.
+3. The creator chooses an access mode:
+   - Link access
+   - Wallet gated
+4. Vyom creates a sealed capsule.
+5. The creator shares the capsule link.
+6. The recipient opens the capsule link.
+7. The message is revealed only after the required conditions are met.
+
+## Access Model
+
+### Link Access
+
+A link access capsule requires only the capsule link and the unlock time condition.
+
+Once the unlock time has passed, the capsule can be revealed by anyone with the link.
+
+### Wallet Gated
+
+A wallet-gated capsule requires both:
+
+- The unlock time condition
+- The matching recipient Sui wallet
+
+If the connected wallet does not match the recipient wallet, the capsule remains sealed.
+
+## Technical Stack
 
 - Next.js App Router
 - React
 - TypeScript
 - Tailwind CSS
-- Supabase
-- Server-side Next.js route handlers
+- Mysten dApp Kit for Sui wallet connection
+- Server-side route handlers for capsule persistence
+- Wallet-based Vault identity
 
-## Core Flow
+## Project Structure
 
-1. Create a capsule at `/create`.
-2. Write a private message.
-3. Set an unlock date and time.
-4. Choose link access or wallet gated access.
-5. For wallet gated capsules, enter the recipient Sui wallet address.
-6. Seal the capsule.
-7. Vyom saves the capsule.
-8. The app redirects to `/capsule/[id]`.
-9. Copy and share the capsule link.
-10. Opening the link fetches the capsule by id.
-11. If the unlock time is in the future, the capsule stays sealed with a countdown.
-12. If the unlock time has passed and the access condition is satisfied, the message is revealed.
+```txt
+app/
+  api/
+    capsules/
+      route.ts
+      [id]/
+        route.ts
+  capsule/
+    [id]/
+      page.tsx
+  create/
+    page.tsx
+  vault/
+    page.tsx
+  globals.css
+  icon.svg
+  layout.tsx
+  page.tsx
+
+components/
+  vyom/
+    CapsuleFlow.tsx
+    CapsuleHero.tsx
+    ProductSurfaces.tsx
+    SuiWalletProvider.tsx
+    VyomLogo.tsx
+    VyomShell.tsx
+
+hooks/
+  useCapsules.ts
+
+lib/
+  capsule-access.ts
+  capsule-utils.ts
+  capsules.ts
+  supabase-capsules.ts
+
+public/
+  assert/
+    homepage.png
+    create.png
+    vault.png
+    demo.png
+
+types/
+  capsule.ts
+```
+
+## Data Model
+
+Vyom stores capsule records with the fields required for sealed message delivery, scheduled unlocks, wallet-gated reveal, and wallet-owned Vault discovery.
+
+The capsule model includes:
+
+- Capsule ID
+- Title
+- Message
+- Recipient wallet
+- Unlock timestamp
+- Access type
+- Owner wallet
+- Creation timestamp
+
+Deployment-specific schema setup is intentionally kept outside the public repository. Service credentials and storage configuration should remain private and server-side.
 
 ## Environment Variables
 
-Vyom works locally without Supabase by falling back to `localStorage`.
-
-For deployed shareable links that work across devices, configure Supabase:
+Create a `.env.local` file using `.env.example` as reference.
 
 ```env
 SUPABASE_URL=
 SUPABASE_SERVICE_ROLE_KEY=
 ```
 
-Create a `.env.local` file from `.env.example` and fill in the values.
+Important:
 
-`SUPABASE_SERVICE_ROLE_KEY` must remain server-side only. Do not expose it as a `NEXT_PUBLIC_*` variable.
+- The service role key must remain server-only.
+- Do not expose server credentials through `NEXT_PUBLIC_*` variables.
+- Capsule persistence is handled through server-side route handlers.
 
-## Supabase Setup
-
-Run the SQL in:
-
-```text
-supabase/schema.sql
-```
-
-This creates the `capsules` table used by the API routes.
-
-If your Supabase project requires explicit table permissions, run:
-
-```sql
-grant usage on schema public to service_role;
-grant select, insert, update, delete on table public.capsules to service_role;
-```
-
-## Getting Started
+## Local Development
 
 Install dependencies:
 
@@ -83,19 +207,19 @@ Install dependencies:
 npm install
 ```
 
-Run the development server:
+Start the development server:
 
 ```bash
 npm run dev
 ```
 
-Open:
+Open the app locally:
 
-```text
+```txt
 http://localhost:3000
 ```
 
-## Scripts
+## Available Scripts
 
 ```bash
 npm run dev
@@ -104,56 +228,55 @@ npm run build
 npm run start
 ```
 
-## Validation
+## Current Implementation Boundaries
 
-Before deploying, run:
+The current release demonstrates the complete capsule workflow, including time unlocks, link sharing, Sui wallet-gated reveal, and wallet-owned Vault discovery.
 
-```bash
-npm run lint
-npm run build
-```
+The following areas are planned for future hardening:
 
-## Deployment
+- Client-side encryption
+- Signature-based unlock verification
+- Stronger cryptographic access enforcement
+- File and media capsules
+- One-time reveal capsules
+- NFT-based access conditions
+- Payment-based unlock conditions
+- Richer programmable unlock logic
 
-Vyom can be deployed on Vercel or any Next.js-compatible hosting provider.
+## Security Positioning
 
-Before deployment:
+Vyom currently provides app-level sealed reveal behavior and wallet-gated access logic.
 
-1. Create a Supabase project.
-2. Run `supabase/schema.sql`.
-3. Add the required environment variables in your hosting provider.
-4. Deploy the app.
-5. Test the full live flow across devices.
+The project should not be described as fully encrypted or cryptographically enforced in its current release. The long-term direction is to add client-side encryption and wallet-signature-based verification so that capsule contents are protected beyond the interface layer.
 
-Recommended deployment test:
+## Roadmap
 
-```text
-Create capsule → Copy link → Open link in another browser/device → Wait for unlock → Reveal message
-```
-
-## Current Limitations
-
-- Messages are sealed and hidden by app logic, but real cryptographic encryption is not implemented yet.
-- Without Supabase, shareable links only work in the same browser because data is stored in `localStorage`.
-- With Supabase configured, `/capsule/[id]` links can be opened across browsers and devices.
-- Vault is wallet-owned: capsules appear there when they are created with a connected Sui wallet.
-- Sui wallet gating is app-level access control using Sui Wallet Standard connection. Real cryptographic encryption is not implemented yet.
-- NFT gating, payments, file capsules, and advanced unlock logic are future features.
-
-## Product Direction
-
-Vyom is designed to evolve into a system for programmable sealed capsules.
+Vyom is designed to evolve into a programmable capsule system for digital content.
 
 Future unlock conditions may include:
 
-- Deeper Sui wallet access
+- Time
+- Wallet identity
 - NFT ownership
-- Payment-based unlock
+- Payment
 - One-time access
-- Self-destructing capsules
-- Private proofs or credentials
-- Custom unlock logic
+- Custom logic
+- Private proofs or attestations
 
-## License
+The current release establishes the core user experience and Sui wallet identity foundation.
 
-No license has been specified yet.
+## Submission Summary
+
+Vyom is a live Sui-aligned capsule product featuring:
+
+- Time-locked message capsules
+- Shareable capsule links
+- Sui wallet-gated reveal
+- Wallet-owned Vault
+- Wallet connect and disconnect flow
+- Static demo capsule route
+- Responsive desktop and mobile interface
+
+## Project Description
+
+Vyom is a sealed capsule platform where users create time-locked messages, share them through direct links, and optionally restrict reveal to a specific Sui wallet. It combines scheduled unlocks, wallet identity, and a Vault experience into a focused consumer product for programmable digital capsules.
