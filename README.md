@@ -2,9 +2,7 @@
 
 Vyom is a Sui-aligned sealed capsule platform for creating time-locked digital capsules that can be shared by link and optionally revealed only by a specific Sui wallet.
 
-The project combines a clean consumer experience with Sui wallet identity to support controlled capsule reveal flows.
-
-A capsule can be created, sealed until a selected unlock time, shared through a direct link, and revealed only when its access conditions are satisfied.
+The project combines a polished consumer experience with Sui wallet identity to support controlled capsule reveal flows. A capsule can be created, sealed until a selected unlock time, shared through a direct link, and revealed only when its configured access conditions are satisfied.
 
 ## Live Deployment
 
@@ -22,7 +20,7 @@ https://github.com/vaibhav0xq/vyom
 
 Vyom introduces a simple access model for sealed digital capsules.
 
-Users can create a capsule, define when it unlocks, choose how it can be revealed, and share it through a direct link. The current release supports link-based reveal, Sui wallet-gated reveal, a wallet-owned Vault, and a minimal Sui Testnet registry package.
+Users can create a capsule, define when it unlocks, choose how it can be revealed, and share it through a direct link. The current release supports link-based reveal, Sui wallet gated reveal, a wallet-owned Vault, and a minimal Sui Testnet registry package.
 
 The core idea is to make capsules programmable around two conditions:
 
@@ -69,9 +67,9 @@ Link access capsules can be revealed by anyone with the capsule link after the u
 
 This mode is designed for simple future messages, announcements, personal notes, and lightweight capsule sharing.
 
-### Sui Wallet-Gated Reveal
+### Sui Wallet Gated Reveal
 
-Wallet-gated capsules require the recipient to connect the matching Sui wallet before the capsule content is revealed.
+Wallet gated capsules require the recipient to connect the matching Sui wallet before the capsule content is revealed.
 
 This adds wallet identity as an access condition and allows a creator to restrict reveal to a specific Sui address.
 
@@ -112,7 +110,7 @@ Once the unlock time has passed, anyone with the direct link can reveal the caps
 
 ### Wallet Gated
 
-A wallet-gated capsule requires:
+A wallet gated capsule requires:
 
 - The capsule link
 - The unlock time condition
@@ -127,9 +125,9 @@ Vyom uses Sui wallet identity as part of its capsule access model.
 The current release includes:
 
 - Sui wallet connection through Mysten dApp Kit
-- Wallet-gated reveal based on a recipient Sui address
+- Wallet gated reveal based on a recipient Sui address
 - Wallet-owned Vault discovery based on the connected Sui wallet
-- A minimal Sui Testnet registry package used as an on-chain project marker
+- A minimal Sui Testnet registry package used as an onchain project marker
 
 ### Sui Testnet Package
 
@@ -142,9 +140,9 @@ Transaction Digest: J928hnejDaYXgkcRNcYLuC6y4qeYU2Nnmzg9qHfqr9gV
 Shared Project Object: 0x7d807eb8e941ec18398167fdef788eeecb8c87a3632772bd72d52124a43ef701
 ```
 
-The package is intentionally minimal in the current release. It provides an on-chain marker for Vyom while the primary product experience is delivered through the web application and Sui wallet-based access flow.
+The package is intentionally minimal in the current release. It provides an onchain marker for Vyom while the primary product experience is delivered through the web application and Sui wallet-based access flow.
 
-Future versions can expand this on-chain layer to support stronger registry logic, programmable unlock rules, and cryptographic access verification.
+Future versions can expand this onchain layer to support stronger registry logic, programmable unlock rules, and cryptographic access verification.
 
 ## Key Design Decisions
 
@@ -158,7 +156,7 @@ This makes Vault behavior consistent across browsers and devices. If a user crea
 
 Vault is not required to open a capsule.
 
-Every capsule has a direct link, so recipients can access capsules through shared URLs. This keeps the sharing flow simple while still allowing wallet-gated reveal when needed.
+Every capsule has a direct link, so recipients can access capsules through shared URLs. This keeps the sharing flow simple while still allowing wallet gated reveal when needed.
 
 ### Access Modes
 
@@ -167,11 +165,11 @@ Vyom currently supports two access modes:
 - **Link access** — reveal is available after unlock to anyone with the capsule link.
 - **Wallet gated** — reveal requires the matching recipient Sui wallet after unlock.
 
-### Minimal On-Chain Package
+### Minimal Onchain Package
 
 The current Sui Testnet package is a registry marker, not the full capsule storage or unlock engine.
 
-This keeps the current release focused while creating a clear path for future on-chain or hybrid access logic.
+This keeps the current release focused while creating a clear path for future onchain or hybrid access logic.
 
 ## Technical Stack
 
@@ -222,7 +220,6 @@ lib/
   capsule-access.ts
   capsule-utils.ts
   capsules.ts
-  supabase-capsules.ts
 
 move/
   vyom_registry/
@@ -273,7 +270,7 @@ The currently deployed Testnet package is:
 
 ## Data Model
 
-Vyom stores capsule records with the fields required for sealed message delivery, scheduled unlocks, wallet-gated reveal, and wallet-owned Vault discovery.
+Vyom stores capsule records with the fields required for sealed message delivery, scheduled unlocks, wallet gated reveal, and wallet-owned Vault discovery.
 
 The capsule model includes:
 
@@ -286,21 +283,19 @@ The capsule model includes:
 - Owner wallet
 - Creation timestamp
 
-Deployment-specific schema setup is intentionally kept outside the public repository. Service credentials and storage configuration should remain private and server-side.
+Storage setup is intentionally kept outside the public repository. Configure your own database or storage provider privately and keep all service credentials server-side.
 
-## Environment Variables
+## Environment Configuration
 
-Create a `.env.local` file using `.env.example` as reference.
+Vyom requires private server-side environment values for capsule persistence.
 
-```env
-SUPABASE_URL=
-SUPABASE_SERVICE_ROLE_KEY=
-```
+For local development and deployment, configure your own database or storage provider and add the required private credentials in your environment settings.
 
 Important:
 
-- The service role key must remain server-only.
-- Do not expose server credentials through `NEXT_PUBLIC_*` variables.
+- Keep all service credentials server-side only.
+- Do not expose private keys through public client variables.
+- Do not commit `.env`, `.env.local`, or production secrets.
 - Capsule persistence is handled through server-side route handlers.
 
 ## Local Development
@@ -346,7 +341,7 @@ Core flows tested:
 - Homepage loads correctly
 - Capsule creation works
 - Link access capsules open after unlock
-- Wallet-gated capsules require the matching Sui wallet
+- Wallet gated capsules require the matching Sui wallet
 - Vault shows capsules owned by the connected wallet
 - Wallet connect and disconnect flow works
 - Demo capsule route loads correctly
@@ -354,9 +349,9 @@ Core flows tested:
 
 ## Current Implementation Boundaries
 
-Vyom’s current release is a functional product prototype with a live web application, Sui wallet integration, wallet-gated reveal, wallet-owned Vault, and a minimal Sui Testnet registry package.
+Vyom’s current release is a functional product prototype with a live web application, Sui wallet integration, wallet gated reveal, wallet-owned Vault, and a minimal Sui Testnet registry package.
 
-The current wallet-gated reveal is implemented at the application layer. This means the interface enforces the reveal flow based on the connected wallet address, but capsule contents are not yet protected by client-side encryption or signature-based cryptographic unlock.
+The current wallet gated reveal is implemented at the application layer. This means the interface enforces the reveal flow based on the connected wallet address, but capsule contents are not yet protected by client-side encryption or signature-based cryptographic unlock.
 
 This is an intentional release boundary for the current version. The project demonstrates the capsule workflow, access model, and Sui identity layer before expanding into stronger cryptographic enforcement.
 
@@ -364,7 +359,7 @@ Planned hardening includes:
 
 - Client-side encryption before capsule persistence
 - Signature-based unlock verification
-- On-chain or hybrid access registries
+- Onchain or hybrid access registries
 - Stronger capsule ownership and recovery model
 - Media capsules
 - One-time reveal capsules
@@ -374,7 +369,7 @@ Planned hardening includes:
 
 ## Security Positioning
 
-Vyom currently provides app-level sealed reveal behavior and wallet-gated access logic.
+Vyom currently provides app-level sealed reveal behavior and wallet gated access logic.
 
 The project should not be described as fully encrypted or cryptographically enforced in its current release. The long-term direction is to add client-side encryption and wallet-signature-based verification so that capsule contents are protected beyond the interface layer.
 
@@ -392,7 +387,7 @@ Future unlock conditions may include:
 - Custom logic
 - Private proofs or attestations
 
-The current release establishes the core user experience, Sui wallet identity foundation, and initial on-chain project marker.
+The current release establishes the core user experience, Sui wallet identity foundation, and initial onchain project marker.
 
 ## Submission Summary
 
@@ -400,7 +395,7 @@ Vyom is a live Sui-aligned capsule product featuring:
 
 - Time-locked message capsules
 - Shareable capsule links
-- Sui wallet-gated reveal
+- Sui wallet gated reveal
 - Wallet-owned Vault
 - Wallet connect and disconnect flow
 - Static demo capsule route
