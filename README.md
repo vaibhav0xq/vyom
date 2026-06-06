@@ -389,18 +389,21 @@ Future unlock conditions may include:
 
 The current release establishes the core user experience, Sui wallet identity foundation, and initial onchain project marker.
 
-## Submission Summary
+## Current Status
 
-Vyom is a live Sui-aligned capsule product featuring:
+Vyom is live with the core capsule workflow implemented end to end:
 
-- Time-locked message capsules
-- Shareable capsule links
+- Capsule creation
+- Scheduled unlocks
+- Direct capsule links
+- Link access reveal
 - Sui wallet gated reveal
 - Wallet-owned Vault
-- Wallet connect and disconnect flow
-- Static demo capsule route
+- Sui wallet connect and disconnect
+- Demo capsule route
 - Minimal Sui Testnet registry package
-- Responsive desktop and mobile interface
+
+The current release establishes the base product, wallet identity layer, and capsule reveal model. Future work will focus on stronger cryptographic enforcement, richer access conditions, and deeper Sui integration.
 
 ## Project Description
 
